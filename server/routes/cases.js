@@ -19,28 +19,29 @@ router.get('/:id', (req, res) => {
 
 // Admin: create case
 router.post('/', authMiddleware, (req, res) => {
-  const { title, description, tag, icon, image_url, sort_order } = req.body;
+  const { title, description, tag, icon, image_url, external_url, sort_order } = req.body;
   if (!title) return res.json({ code: 400, message: '标题不能为空', data: null });
   const result = db.prepare(
-    'INSERT INTO cases (title, description, tag, icon, image_url, sort_order) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(title, description || '', tag || '', icon || '', image_url || '', sort_order || 0);
+    'INSERT INTO cases (title, description, tag, icon, image_url, external_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run(title, description || '', tag || '', icon || '', image_url || '', external_url || '', sort_order || 0);
   const row = db.prepare('SELECT * FROM cases WHERE id = ?').get(result.lastInsertRowid);
   res.json({ code: 200, message: 'success', data: row });
 });
 
 // Admin: update case
 router.put('/:id', authMiddleware, (req, res) => {
-  const { title, description, tag, icon, image_url, sort_order } = req.body;
+  const { title, description, tag, icon, image_url, external_url, sort_order } = req.body;
   const existing = db.prepare('SELECT * FROM cases WHERE id = ?').get(req.params.id);
   if (!existing) return res.json({ code: 404, message: '案例不存在', data: null });
   db.prepare(
-    'UPDATE cases SET title=?, description=?, tag=?, icon=?, image_url=?, sort_order=? WHERE id=?'
+    'UPDATE cases SET title=?, description=?, tag=?, icon=?, image_url=?, external_url=?, sort_order=? WHERE id=?'
   ).run(
     title ?? existing.title,
     description ?? existing.description,
     tag ?? existing.tag,
     icon ?? existing.icon,
     image_url ?? existing.image_url,
+    external_url ?? existing.external_url,
     sort_order ?? existing.sort_order,
     req.params.id
   );

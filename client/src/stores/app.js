@@ -4,6 +4,7 @@ import request from '../utils/request'
 
 export const useAppStore = defineStore('app', () => {
   const settings = ref({})
+  const banners = ref([])
   const loading = ref(false)
 
   async function fetchSettings() {
@@ -24,5 +25,14 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
-  return { settings, loading, fetchSettings, updateSettings }
+  async function getBanners() {
+    try {
+      const res = await request.get('/banners/active')
+      if (res.code === 200) banners.value = res.data
+    } catch (e) {
+      console.error('Failed to fetch banners:', e)
+    }
+  }
+
+  return { settings, banners, loading, fetchSettings, updateSettings, getBanners }
 })

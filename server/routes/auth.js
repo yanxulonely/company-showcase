@@ -18,12 +18,34 @@ router.post('/login', (req, res) => {
   if (!bcrypt.compareSync(password, user.password)) {
     return res.json({ code: 401, message: '用户名或密码错误', data: null });
   }
+  if (!user.is_active) {
+    return res.json({ code: 403, message: '账号已被禁用', data: null });
+  }
   const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ code: 200, message: 'success', data: { token, username: user.username } });
+  res.json({
+    code: 200,
+    message: 'success',
+    data: {
+      token,
+      username: user.username,
+      role: user.role,
+      display_name: user.display_name
+    }
+  });
 });
 
 router.get('/profile', authMiddleware, (req, res) => {
-  res.json({ code: 200, message: 'success', data: { username: req.user.username } });
+  res.json({
+    code: 200,
+    message: 'success',
+    data: {
+      id: req.user.id,
+      username: req.user.username,
+      role: req.user.role,
+      display_name: req.user.display_name,
+      phone: req.user.phone
+    }
+  });
 });
 
 module.exports = router;

@@ -11,6 +11,10 @@ const standardsRoutes = require('./routes/standards');
 const contactsRoutes = require('./routes/contacts');
 const settingsRoutes = require('./routes/settings');
 const uploadRoutes = require('./routes/upload');
+const usersRoutes = require('./routes/users');
+const bannersRoutes = require('./routes/banners');
+const materialsRoutes = require('./routes/materials');
+const materialCategoriesRoutes = require('./routes/material-categories');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +36,10 @@ app.use('/api/standards', standardsRoutes);
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/banners', bannersRoutes);
+app.use('/api/materials', materialsRoutes);
+app.use('/api/material-categories', materialCategoriesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

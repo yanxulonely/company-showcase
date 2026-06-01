@@ -1,8 +1,14 @@
 <script setup>
 import { useAppStore } from '../stores/app'
+import { useAuthStore } from '../stores/auth'
 import ThemeToggle from './ThemeToggle.vue'
+import { computed } from 'vue'
 
 const appStore = useAppStore()
+const authStore = useAuthStore()
+
+const isLoggedIn = computed(() => authStore.isLoggedIn)
+const isEmployee = computed(() => authStore.isEmployee)
 
 const navLinks = [
   { label: '首页', href: '#home' },
@@ -31,6 +37,12 @@ function scrollTo(hash) {
             {{ link.label }}
           </a>
           <a href="#contact" class="nav-cta" @click.prevent="scrollTo('#contact')">联系我们</a>
+          <router-link v-if="isEmployee" to="/employee" class="nav-employee">
+            👤 员工入口
+          </router-link>
+          <router-link v-else-if="!isLoggedIn" to="/admin/login" class="nav-login-link">
+            🔑 登录
+          </router-link>
         </div>
         <ThemeToggle />
       </div>
@@ -147,6 +159,35 @@ function scrollTo(hash) {
 }
 
 .nav-cta::after {
+  display: none !important;
+}
+
+.nav-employee {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all var(--transition);
+  font-size: 13px;
+}
+
+.nav-employee:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.nav-employee::after {
+  display: none !important;
+}
+
+.nav-login-link {
+  color: var(--text-muted) !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-login-link::after {
   display: none !important;
 }
 </style>

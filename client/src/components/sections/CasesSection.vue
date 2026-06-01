@@ -1,14 +1,35 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useCasesStore } from '../../stores/cases'
 
 const casesStore = useCasesStore()
+const activeFilter = ref('全部')
 
 const gradients = [
   'case-image-placeholder-1',
   'case-image-placeholder-2',
   'case-image-placeholder-3',
 ]
+
+const tags = computed(() => {
+  const set = new Set(casesStore.items.map(i => i.tag).filter(Boolean))
+  return ['全部', ...set]
+})
+
+const filteredCases = computed(() => {
+  if (activeFilter.value === '全部') return casesStore.items
+  return casesStore.items.filter(i => i.tag === activeFilter.value)
+})
+
+function openCase(item) {
+  if (item.external_url) {
+    window.open(item.external_url, '_blank')
+  }
+}
+
+function setFilter(tag) {
+  activeFilter.value = tag
+}
 
 onMounted(() => {
   casesStore.fetchAll()
@@ -21,18 +42,42 @@ onMounted(() => {
       <div class="section-label">Featured Work</div>
       <h2>精选案例</h2>
     </div>
+
+    <!-- 风格分类筛选 -->
+    <div v-if="tags.length > 1" class="filter-bar fade-in-up" style="max-width: 1400px; margin: 0 auto 40px;">
+      <button
+        v-for="tag in tags"
+        :key="tag"
+        class="filter-tag"
+        :class="{ active: activeFilter === tag }"
+        @click="setFilter(tag)"
+      >
+        {{ tag }}
+      </button>
+    </div>
+
     <div class="cases-grid">
-      <div v-for="(item, i) in casesStore.items" :key="item.id" class="case-card fade-in-up" :style="{ transitionDelay: i * 0.1 + 's' }">
+      <div
+        v-for="(item, i) in filteredCases"
+        :key="item.id"
+        class="case-card fade-in-up"
+        :style="{ transitionDelay: i * 0.1 + 's' }"
+        :class="{ clickable: item.external_url }"
+        @click="openCase(item)"
+      >
         <div class="case-image">
-          <div class="case-image-placeholder" :class="gradients[i % 3]">{{ item.icon }}</div>
+          <div v-if="item.image_url" class="case-image-bg" :style="{ backgroundImage: `url(${item.image_url})` }"></div>
+          <div v-else class="case-image-placeholder" :class="gradients[i % 3]">{{ item.icon }}</div>
           <span class="case-tag">{{ item.tag }}</span>
         </div>
         <div class="case-content">
           <h3 class="case-title">{{ item.title }}</h3>
           <p class="case-desc">{{ item.description }}</p>
+          <span v-if="item.external_url" class="case-link">查看详情 →</span>
         </div>
       </div>
     </div>
+    <p v-if="!filteredCases.length" style="color: var(--text-muted); text-align: center; padding: 60px 0;">暂无案例</p>
   </section>
 </template>
 
@@ -71,6 +116,36 @@ onMounted(() => {
   line-height: 1.2;
 }
 
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-tag {
+  padding: 8px 20px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.filter-tag:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-tag.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
 .cases-grid {
   max-width: 1400px;
   margin: 0 auto;
@@ -85,8 +160,12 @@ onMounted(() => {
   border-radius: 16px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+  cursor: default;
   position: relative;
+}
+
+.case-card.clickable {
+  cursor: pointer;
 }
 
 .case-card::before {
@@ -117,6 +196,18 @@ onMounted(() => {
   height: 220px;
   position: relative;
   overflow: hidden;
+}
+
+.case-image-bg {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.case-card:hover .case-image-bg {
+  transform: scale(1.1);
 }
 
 .case-image-placeholder {
@@ -169,5 +260,18 @@ onMounted(() => {
   font-size: 14px;
   color: var(--text-muted);
   line-height: 1.6;
+}
+
+.case-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--accent-light);
+  font-weight: 500;
+  transition: color var(--transition);
+}
+
+.case-card.clickable:hover .case-link {
+  color: var(--accent);
 }
 </style>

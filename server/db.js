@@ -14,6 +14,10 @@ function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
+      role TEXT DEFAULT 'user',
+      display_name TEXT,
+      phone TEXT,
+      is_active INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -31,6 +35,7 @@ function initDatabase() {
       tag TEXT,
       icon TEXT,
       image_url TEXT,
+      external_url TEXT,
       sort_order INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -71,15 +76,54 @@ function initDatabase() {
       contact_info TEXT,
       message TEXT,
       status TEXT DEFAULT 'pending',
+      note TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS banners (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT,
+      subtitle TEXT,
+      image_url TEXT,
+      sort_order INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS material_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS materials (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      category_id INTEGER,
+      tags TEXT,
+      file_url TEXT,
+      file_type TEXT,
+      original_filename TEXT,
+      is_pinned INTEGER DEFAULT 0,
+      visibility TEXT DEFAULT 'employee',
+      sort_order INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (category_id) REFERENCES material_categories(id)
+    );
   `);
+
+  // Migrate existing tables: add new columns if missing
+  migrateTable();
 
   // Seed default admin
   const admin = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
   if (!admin) {
     const hash = bcrypt.hashSync('admin123', 10);
-    db.prepare('INSERT INTO users (username, password) VALUES (?, ?)').run('admin', hash);
+    db.prepare('INSERT INTO users (username, password, role, display_name) VALUES (?, ?, ?, ?)').run('admin', hash, 'admin', '管理员');
+  } else {
+    // Ensure existing admin has role = 'admin'
+    db.prepare("UPDATE users SET role = 'admin', display_name = COALESCE(display_name, '管理员') WHERE username = 'admin'").run();
   }
 
   // Seed default settings
@@ -146,6 +190,53 @@ function initDatabase() {
       '增值服务按需选购',
       '长期合作优惠方案'
     ]), 2);
+  }
+
+  // Seed default banners
+  const bannersCount = db.prepare('SELECT COUNT(*) as count FROM banners').get().count;
+  if (bannersCount === 0) {
+    const insertBanner = db.prepare('INSERT INTO banners (title, subtitle, image_url, sort_order) VALUES (?, ?, ?, ?)');
+    insertBanner.run('数字化转型加速器', '助力企业快速实现数字化升级', '/uploads/default-banner-1.jpg', 1);
+    insertBanner.run('云原生解决方案', '弹性架构，无限可能', '/uploads/default-banner-2.jpg', 2);
+  }
+
+  // Seed default material categories
+  const catCount = db.prepare('SELECT COUNT(*) as count FROM material_categories').get().count;
+  if (catCount === 0) {
+    const insertCat = db.prepare('INSERT INTO material_categories (name, sort_order) VALUES (?, ?)');
+    insertCat.run('产品手册', 1);
+    insertCat.run('技术文档', 2);
+    insertCat.run('案例方案', 3);
+    insertCat.run('培训资料', 4);
+  }
+}
+
+function migrateTable() {
+  // Add columns to users if missing
+  const userColumns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+  if (!userColumns.includes('role')) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+  }
+  if (!userColumns.includes('display_name')) {
+    db.exec("ALTER TABLE users ADD COLUMN display_name TEXT");
+  }
+  if (!userColumns.includes('phone')) {
+    db.exec("ALTER TABLE users ADD COLUMN phone TEXT");
+  }
+  if (!userColumns.includes('is_active')) {
+    db.exec("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1");
+  }
+
+  // Add columns to cases if missing
+  const casesColumns = db.prepare("PRAGMA table_info(cases)").all().map(c => c.name);
+  if (!casesColumns.includes('external_url')) {
+    db.exec("ALTER TABLE cases ADD COLUMN external_url TEXT");
+  }
+
+  // Add columns to contacts if missing
+  const contactsColumns = db.prepare("PRAGMA table_info(contacts)").all().map(c => c.name);
+  if (!contactsColumns.includes('note')) {
+    db.exec("ALTER TABLE contacts ADD COLUMN note TEXT");
   }
 }
 

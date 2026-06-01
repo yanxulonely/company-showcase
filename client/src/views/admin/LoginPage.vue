@@ -16,7 +16,14 @@ async function handleLogin() {
   const res = await authStore.login(form.value.username, form.value.password)
   loading.value = false
   if (res.code === 200) {
-    router.push('/admin')
+    const role = res.data.role
+    if (role === 'admin') {
+      router.push('/admin')
+    } else if (role === 'employee') {
+      router.push('/employee')
+    } else {
+      router.push('/')
+    }
   } else {
     error.value = res.message
   }
@@ -29,8 +36,8 @@ async function handleLogin() {
       <div class="login-logo">
         <div class="logo-icon">◆</div>
       </div>
-      <h2>管理员登录</h2>
-      <p class="login-subtitle">请输入账号密码登录后台管理系统</p>
+      <h2>登录</h2>
+      <p class="login-subtitle">请输入账号密码登录系统</p>
       <form @submit.prevent="handleLogin">
         <div v-if="error" class="login-error">{{ error }}</div>
         <div class="form-group">

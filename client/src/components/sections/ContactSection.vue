@@ -6,18 +6,20 @@ import { useContactsStore } from '../../stores/contacts'
 const appStore = useAppStore()
 const contactsStore = useContactsStore()
 
-const form = ref({ name: '', company: '', contact_info: '', message: '' })
+const form = ref({ name: '', phone: '', address: '', area: '', budget: '' })
 const submitting = ref(false)
 const submitted = ref(false)
 
+const budgetOptions = ['5万以内', '5-10万', '10-30万', '30-50万', '50万以上']
+
 async function handleSubmit() {
-  if (!form.value.name) return
+  if (!form.value.name || !form.value.phone) return
   submitting.value = true
   const res = await contactsStore.submit(form.value)
   submitting.value = false
   if (res.code === 200) {
     submitted.value = true
-    form.value = { name: '', company: '', contact_info: '', message: '' }
+    form.value = { name: '', phone: '', address: '', area: '', budget: '' }
     setTimeout(() => { submitted.value = false }, 3000)
   }
 }
@@ -26,45 +28,90 @@ async function handleSubmit() {
 <template>
   <section class="section" id="contact">
     <div class="contact-container">
+      <!-- 左侧：联系信息 + 微信二维码 -->
       <div class="contact-info fade-in-up">
         <h3>开始合作</h3>
         <p>无论是项目咨询还是技术交流，我们都期待与您的对话。通常在 24 小时内回复。</p>
         <ul class="contact-details">
           <li>
             <span>📍</span>
-            <span>{{ appStore.settings.contact_address || '北京市朝阳区科技大厦' }}</span>
+            <div>
+              <div class="detail-label">公司地址</div>
+              <div>{{ appStore.settings.contact_address || '北京市朝阳区科技大厦' }}</div>
+            </div>
           </li>
           <li>
             <span>📞</span>
-            <span>{{ appStore.settings.contact_phone || '400-888-8888' }}</span>
+            <div>
+              <div class="detail-label">咨询电话</div>
+              <div>{{ appStore.settings.contact_phone || '400-888-8888' }}</div>
+            </div>
+          </li>
+          <li>
+            <span>🕐</span>
+            <div>
+              <div class="detail-label">营业时间</div>
+              <div>周一至周五 9:00 - 18:00</div>
+            </div>
           </li>
           <li>
             <span>✉️</span>
-            <span>{{ appStore.settings.contact_email || 'contact@company.com' }}</span>
+            <div>
+              <div class="detail-label">电子邮箱</div>
+              <div>{{ appStore.settings.contact_email || 'contact@company.com' }}</div>
+            </div>
           </li>
         </ul>
+        <!-- 微信二维码 -->
+        <div class="wechat-section">
+          <div class="wechat-label">微信扫码咨询</div>
+          <div class="wechat-qr">
+            <div class="qr-placeholder">
+              <span>📱</span>
+              <span class="qr-text">微信二维码</span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- 右侧：简化表单 -->
       <form class="contact-form fade-in-up" style="transition-delay: 0.1s" @submit.prevent="handleSubmit">
-        <div v-if="submitted" class="form-success">提交成功！我们会尽快与您联系。</div>
-        <div class="form-group">
-          <label>姓名</label>
-          <input v-model="form.name" type="text" placeholder="您的姓名" required>
+        <div class="form-header">
+          <h4>预约咨询</h4>
+          <p>请填写以下信息，我们将尽快与您联系</p>
+        </div>
+        <div v-if="submitted" class="form-success">✅ 提交成功！我们会尽快与您联系。</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>姓名 <span class="required">*</span></label>
+            <input v-model="form.name" type="text" placeholder="您的姓名" required>
+          </div>
+          <div class="form-group">
+            <label>手机号 <span class="required">*</span></label>
+            <input v-model="form.phone" type="tel" placeholder="您的手机号" required>
+          </div>
         </div>
         <div class="form-group">
-          <label>公司</label>
-          <input v-model="form.company" type="text" placeholder="公司名称">
+          <label>装修地址</label>
+          <input v-model="form.address" type="text" placeholder="房屋地址（选填）">
         </div>
-        <div class="form-group">
-          <label>联系方式</label>
-          <input v-model="form.contact_info" type="text" placeholder="手机号或邮箱">
-        </div>
-        <div class="form-group">
-          <label>需求描述</label>
-          <textarea v-model="form.message" placeholder="请简要描述您的需求..."></textarea>
+        <div class="form-row">
+          <div class="form-group">
+            <label>面积</label>
+            <input v-model="form.area" type="text" placeholder="如：120㎡">
+          </div>
+          <div class="form-group">
+            <label>预算</label>
+            <select v-model="form.budget" class="form-select">
+              <option value="">请选择预算范围</option>
+              <option v-for="opt in budgetOptions" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
+          </div>
         </div>
         <button type="submit" class="form-submit" :disabled="submitting">
-          {{ submitting ? '提交中...' : '提交咨询' }}
+          {{ submitting ? '提交中...' : '立即预约咨询' }}
         </button>
+        <p class="form-tip">提交即表示您同意我们的隐私政策，信息仅用于咨询服务</p>
       </form>
     </div>
   </section>
@@ -81,6 +128,7 @@ async function handleSubmit() {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 80px;
+  align-items: start;
 }
 
 .contact-info h3 {
@@ -102,7 +150,7 @@ async function handleSubmit() {
 
 .contact-details li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   padding: 16px 0;
   color: var(--text-secondary);
@@ -117,6 +165,7 @@ async function handleSubmit() {
 .contact-details li span:first-child {
   width: 48px;
   height: 48px;
+  min-width: 48px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -132,6 +181,54 @@ async function handleSubmit() {
   transform: scale(1.1);
 }
 
+.detail-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 微信二维码 */
+.wechat-section {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.wechat-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.wechat-qr {
+  width: 160px;
+  height: 160px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qr-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-secondary);
+  font-size: 40px;
+}
+
+.qr-text {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 表单 */
 .contact-form {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -151,6 +248,27 @@ async function handleSubmit() {
   background: linear-gradient(90deg, var(--accent), #8b5cf6, #ec4899);
 }
 
+.form-header {
+  margin-bottom: 28px;
+}
+
+.form-header h4 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.form-header p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 .form-group {
   margin-bottom: 20px;
 }
@@ -163,8 +281,13 @@ async function handleSubmit() {
   font-size: 14px;
 }
 
+.required {
+  color: #ef4444;
+}
+
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-select {
   width: 100%;
   padding: 14px 16px;
   background: var(--bg-secondary);
@@ -177,7 +300,8 @@ async function handleSubmit() {
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -188,9 +312,12 @@ async function handleSubmit() {
   color: var(--text-muted);
 }
 
-.form-group textarea {
-  min-height: 120px;
-  resize: vertical;
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  cursor: pointer;
 }
 
 .form-submit {
@@ -199,13 +326,14 @@ async function handleSubmit() {
   color: white;
   padding: 16px;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
+  margin-top: 8px;
 }
 
 .form-submit::before {
@@ -231,6 +359,13 @@ async function handleSubmit() {
 .form-submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.form-tip {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 12px;
 }
 
 .form-success {
