@@ -206,6 +206,26 @@ function initDatabase() {
     insertCat.run('报价参考与预算', 3);
     insertCat.run('培训课件与话术', 4);
   }
+
+  // Seed default materials
+  const matCount = db.prepare('SELECT COUNT(*) as count FROM materials').get().count;
+  if (matCount === 0) {
+    const insertMat = db.prepare(
+      `INSERT INTO materials (title, category_id, tags, file_url, file_type, original_filename, visibility, is_pinned, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    insertMat.run(
+      '尚润装饰材料品牌介绍',
+      1,
+      JSON.stringify(['材料', '品牌', '水电', '瓦工', '油工', '吊顶', '门窗', '定制']),
+      '/uploads/material-1780415873246-rlgm11.pptx',
+      'file',
+      '尚润装饰材料品牌介绍.pptx',
+      'user',
+      1,
+      1
+    );
+  }
 }
 
 function migrateTable() {
