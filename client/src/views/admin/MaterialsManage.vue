@@ -27,6 +27,8 @@ const form = ref({
   file_url: '',
   file_type: 'link',
   original_filename: '',
+  pdf_url: '',
+  pdf_filename: '',
   is_pinned: 0,
   visibility: 'employee',
   sort_order: 0
@@ -53,6 +55,8 @@ function openCreate() {
     file_url: '',
     file_type: 'link',
     original_filename: '',
+    pdf_url: '',
+    pdf_filename: '',
     is_pinned: 0,
     visibility: 'employee',
     sort_order: 0
@@ -70,6 +74,8 @@ function openEdit(item) {
     file_url: item.file_url || '',
     file_type: item.file_type || 'link',
     original_filename: item.original_filename || '',
+    pdf_url: item.pdf_url || '',
+    pdf_filename: item.pdf_filename || '',
     is_pinned: item.is_pinned,
     visibility: item.visibility || 'employee',
     sort_order: item.sort_order || 0
@@ -126,6 +132,10 @@ async function handleFileUpload(e) {
     if (res.code === 200) {
       form.value.file_url = res.data.url
       form.value.original_filename = res.data.originalname
+      if (res.data.pdf_url) {
+        form.value.pdf_url = res.data.pdf_url
+        form.value.pdf_filename = res.data.pdf_filename
+      }
       // Auto-detect file type
       const ext = res.data.originalname.split('.').pop().toLowerCase()
       if (['ppt', 'pptx'].includes(ext)) form.value.file_type = 'ppt'

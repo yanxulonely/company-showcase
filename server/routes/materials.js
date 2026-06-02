@@ -1,6 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+const { execSync } = require('child_process');
 const { db } = require('../db');
 const { authMiddleware, requireRole } = require('../middleware/auth');
 
@@ -76,14 +78,14 @@ router.get('/:id', authMiddleware, (req, res) => {
 
 // POST /api/materials - 创建资料
 router.post('/', authMiddleware, requireRole('admin'), (req, res) => {
-  const { title, category_id, tags, file_url, file_type, original_filename, is_pinned, visibility, sort_order } = req.body;
+  const { title, category_id, tags, file_url, file_type, original_filename, pdf_url, pdf_filename, is_pinned, visibility, sort_order } = req.body;
   if (!title) {
     return res.json({ code: 400, message: '标题不能为空', data: null });
   }
   const tagsJson = Array.isArray(tags) ? JSON.stringify(tags) : (tags || '[]');
   const result = db.prepare(
-    `INSERT INTO materials (title, category_id, tags, file_url, file_type, original_filename, is_pinned, visibility, sort_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO materials (title, category_id, tags, file_url, file_type, original_filename, pdf_url, pdf_filename, is_pinned, visibility, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     title,
     category_id || null,
@@ -91,6 +93,8 @@ router.post('/', authMiddleware, requireRole('admin'), (req, res) => {
     file_url || '',
     file_type || 'link',
     original_filename || '',
+    pdf_url || null,
+    pdf_filename || null,
     is_pinned ? 1 : 0,
     visibility || 'employee',
     sort_order || 0
@@ -105,14 +109,14 @@ router.post('/', authMiddleware, requireRole('admin'), (req, res) => {
 // PUT /api/materials/:id - 更新资料
 router.put('/:id', authMiddleware, requireRole('admin'), (req, res) => {
   const { id } = req.params;
-  const { title, category_id, tags, file_url, file_type, original_filename, is_pinned, visibility, sort_order } = req.body;
+  const { title, category_id, tags, file_url, file_type, original_filename, pdf_url, pdf_filename, is_pinned, visibility, sort_order } = req.body;
   const material = db.prepare('SELECT id FROM materials WHERE id = ?').get(id);
   if (!material) {
     return res.json({ code: 404, message: '资料不存在', data: null });
   }
   const tagsJson = Array.isArray(tags) ? JSON.stringify(tags) : (tags || '[]');
   db.prepare(
-    `UPDATE materials SET title = ?, category_id = ?, tags = ?, file_url = ?, file_type = ?, original_filename = ?, is_pinned = ?, visibility = ?, sort_order = ? WHERE id = ?`
+    `UPDATE materials SET title = ?, category_id = ?, tags = ?, file_url = ?, file_type = ?, original_filename = ?, pdf_url = ?, pdf_filename = ?, is_pinned = ?, visibility = ?, sort_order = ? WHERE id = ?`
   ).run(
     title || '',
     category_id || null,
@@ -120,6 +124,8 @@ router.put('/:id', authMiddleware, requireRole('admin'), (req, res) => {
     file_url || '',
     file_type || 'link',
     original_filename || '',
+    pdf_url || null,
+    pdf_filename || null,
     is_pinned ? 1 : 0,
     visibility || 'employee',
     sort_order || 0,
@@ -165,11 +171,30 @@ router.post('/upload', authMiddleware, requireRole('admin'), upload.single('file
     return res.json({ code: 400, message: '请选择文件', data: null });
   }
   const url = `/uploads/${req.file.filename}`;
-  res.json({
-    code: 200,
-    message: 'success',
-    data: { url, filename: req.file.filename, originalname: req.file.originalname }
-  });
+  const result = { url, filename: req.file.filename, originalname: req.file.originalname };
+
+  // PPT/PPTX 自动转 PDF
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  if (['.ppt', '.pptx'].includes(ext)) {
+    try {
+      const uploadsDir = path.join(__dirname, '..', 'uploads');
+      const baseName = path.basename(req.file.filename, ext);
+      const pdfName = baseName + '.pdf';
+      const pdfPath = path.join(uploadsDir, pdfName);
+      execSync(`libreoffice --headless --convert-to pdf --outdir "${uploadsDir}" "${req.file.path}"`, { timeout: 30000 });
+      if (fs.existsSync(pdfPath)) {
+        result.pdf_url = `/uploads/${pdfName}`;
+        result.pdf_filename = pdfName;
+        // 更新数据库中的 pdf_url
+        db.prepare('UPDATE materials SET pdf_url = ?, pdf_filename = ? WHERE file_url = ?')
+          .run(`/uploads/${pdfName}`, pdfName, url);
+      }
+    } catch (e) {
+      console.error('PPT to PDF conversion failed:', e.message);
+    }
+  }
+
+  res.json({ code: 200, message: 'success', data: result });
 });
 
 module.exports = router;

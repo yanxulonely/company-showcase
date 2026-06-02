@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMaterialsStore } from '../../stores/materials'
+import VueOfficePptx from '@vue-office/pptx'
 
 const props = defineProps({
   id: [String, Number]
@@ -34,6 +35,13 @@ const isImage = computed(() => ['image', 'jpg', 'jpeg', 'png', 'gif', 'webp', 's
 const isPdf = computed(() => fileType.value === 'pdf')
 const isLink = computed(() => fileType.value === 'link')
 const isPpt = computed(() => ['ppt', 'pptx'].includes(fileType.value))
+const hasPdf = computed(() => material.value?.pdf_url)
+const pdfUrl = computed(() => {
+  if (!material.value || !material.value.pdf_url) return ''
+  const url = material.value.pdf_url
+  if (url.startsWith('http')) return url
+  return baseUrl.value + url
+})
 
 const galleryIndex = ref(0)
 const galleryImages = computed(() => {
@@ -65,6 +73,14 @@ function openLink() {
   if (fileUrl.value) {
     window.open(fileUrl.value, '_blank')
   }
+}
+
+function handleRendered() {
+  console.log('PPT rendered successfully')
+}
+
+function handlePdfError(e) {
+  console.error('PPT render error:', e)
 }
 
 onMounted(async () => {
@@ -148,13 +164,18 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- PPT 提示 -->
+        <!-- PPT 预览 -->
+        <div v-else-if="isPpt && hasPdf" class="preview-frame pdf-preview">
+          <iframe :src="pdfUrl" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div v-else-if="isPpt && fileUrl" class="preview-frame ppt-preview">
+          <VueOfficePptx :src="fileUrl" @rendered="handleRendered" @error="handlePdfError" />
+        </div>
         <div v-else-if="isPpt" class="preview-frame ppt-hint">
           <div class="hint-content">
             <span class="hint-icon">📊</span>
             <h3>PPT 文件</h3>
-            <p>此 PPT 已转为 PDF 格式，可直接在线预览。</p>
-            <button v-if="fileUrl" class="download-btn" @click="openLink">📥 打开文件</button>
+            <p>此文件暂不支持在线预览，请下载后查看。</p>
           </div>
         </div>
 
@@ -348,6 +369,17 @@ onMounted(async () => {
   max-height: 80vh;
   object-fit: contain;
   border-radius: 8px;
+}
+
+/* PPT 预览 */
+.ppt-preview {
+  width: 100%;
+  min-height: 600px;
+}
+
+.ppt-preview :deep(.vue-office-pptx) {
+  width: 100%;
+  min-height: 600px;
 }
 
 /* PPT / 链接 / 通用提示 */

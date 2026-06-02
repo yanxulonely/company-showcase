@@ -235,6 +235,15 @@ function migrateTable() {
   if (!contactsColumns.includes('note')) {
     db.exec("ALTER TABLE contacts ADD COLUMN note TEXT");
   }
+
+  // Add columns to materials if missing
+  const materialsColumns = db.prepare("PRAGMA table_info(materials)").all().map(c => c.name);
+  if (!materialsColumns.includes('pdf_url')) {
+    db.exec("ALTER TABLE materials ADD COLUMN pdf_url TEXT");
+  }
+  if (!materialsColumns.includes('pdf_filename')) {
+    db.exec("ALTER TABLE materials ADD COLUMN pdf_filename TEXT");
+  }
 }
 
 module.exports = { db, initDatabase };
