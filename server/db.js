@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const { seedDefaultMaterials } = require('./seedMaterials');
 
 const dbPath = path.join(__dirname, 'data.db');
 const db = new Database(dbPath);
@@ -206,6 +207,9 @@ function initDatabase() {
     insertCat.run('报价参考与预算', 3);
     insertCat.run('培训课件与话术', 4);
   }
+
+  // Seed materials from server/seed-materials/ (files + manifest.json)
+  seedDefaultMaterials(db);
 }
 
 function migrateTable() {

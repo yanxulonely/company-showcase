@@ -1,0 +1,39 @@
+[
+  {
+    "filename": "装修材料清单-常用品牌.pdf",
+    "title": "装修材料清单 · 常用品牌",
+    "category": "装修材料清单",
+    "tags": ["材料", "清单", "品牌"],
+    "is_pinned": 1,
+    "sort_order": 1
+  },
+  {
+    "filename": "施工工艺说明-水电泥木油.pdf",
+    "title": "施工工艺说明 · 水电泥木油",
+    "category": "施工工艺说明",
+    "tags": ["工艺", "施工", "标准"],
+    "sort_order": 1
+  },
+  {
+    "filename": "报价参考-整装预算模板.pdf",
+    "title": "报价参考 · 整装预算模板",
+    "category": "报价参考与预算",
+    "tags": ["报价", "预算", "模板"],
+    "sort_order": 1
+  },
+  {
+    "filename": "尚润装饰-销售话术培训.pptx",
+    "title": "尚润装饰 · 销售话术培训",
+    "category": "培训课件与话术",
+    "tags": ["培训", "话术", "销售"],
+    "is_pinned": 1,
+    "sort_order": 1
+  },
+  {
+    "filename": "尚润装饰-公司简介.pptx",
+    "title": "尚润装饰 · 公司简介",
+    "category": "培训课件与话术",
+    "tags": ["培训", "介绍", "公司"],
+    "sort_order": 2
+  }
+]

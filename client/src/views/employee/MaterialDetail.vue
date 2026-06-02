@@ -15,6 +15,8 @@ const materialsStore = useMaterialsStore()
 const material = ref(null)
 const loading = ref(true)
 const error = ref('')
+const pptData = ref(null)
+const previewError = ref('')
 
 const materialId = computed(() => props.id || route.params.id)
 
@@ -76,11 +78,25 @@ function openLink() {
 }
 
 function handleRendered() {
-  console.log('PPT rendered successfully')
+  previewError.value = ''
 }
 
-function handlePdfError(e) {
-  console.error('PPT render error:', e)
+function handlePreviewError(e) {
+  previewError.value = '预览加载失败，请尝试下载文件查看'
+  console.error('Preview render error:', e)
+}
+
+async function loadPptPreview(url) {
+  pptData.value = null
+  previewError.value = ''
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    pptData.value = await response.arrayBuffer()
+  } catch (e) {
+    previewError.value = '预览加载失败，请尝试下载文件查看'
+    console.error('Failed to load PPT preview:', e)
+  }
 }
 
 onMounted(async () => {
@@ -88,6 +104,12 @@ onMounted(async () => {
     const res = await materialsStore.fetchOne(materialId.value)
     if (res.code === 200) {
       material.value = res.data
+      const type = res.data.file_type
+      const url = res.data.file_url
+      if (['ppt', 'pptx'].includes(type) && url && !res.data.pdf_url) {
+        const fullUrl = url.startsWith('http') ? url : baseUrl.value + url
+        await loadPptPreview(fullUrl)
+      }
     } else {
       error.value = res.message || '资料不存在'
     }
@@ -169,7 +191,22 @@ onMounted(async () => {
           <iframe :src="pdfUrl" frameborder="0" allowfullscreen></iframe>
         </div>
         <div v-else-if="isPpt && fileUrl" class="preview-frame ppt-preview">
-          <VueOfficePptx :src="fileUrl" @rendered="handleRendered" @error="handlePdfError" />
+          <div v-if="!pptData && !previewError" class="loading-state inline-loading">
+            <div class="spinner"></div>
+            <p>正在加载 PPT 预览...</p>
+          </div>
+          <VueOfficePptx
+            v-else-if="pptData"
+            :src="pptData"
+            @rendered="handleRendered"
+            @error="handlePreviewError"
+          />
+          <div v-else class="hint-content">
+            <span class="hint-icon">📊</span>
+            <h3>PPT 预览不可用</h3>
+            <p>{{ previewError || '此文件暂不支持在线预览，请下载后查看。' }}</p>
+            <button v-if="fileUrl" class="download-btn" @click="openLink">📥 打开文件</button>
+          </div>
         </div>
         <div v-else-if="isPpt" class="preview-frame ppt-hint">
           <div class="hint-content">
@@ -375,11 +412,18 @@ onMounted(async () => {
 .ppt-preview {
   width: 100%;
   min-height: 600px;
+  background: #ffffff;
 }
 
-.ppt-preview :deep(.vue-office-pptx) {
-  width: 100%;
+.ppt-preview :deep(.vue-office-pptx),
+.ppt-preview :deep(canvas) {
+  width: 100% !important;
   min-height: 600px;
+  background: #ffffff !important;
+}
+
+.inline-loading {
+  padding: 80px 20px;
 }
 
 /* PPT / 链接 / 通用提示 */
