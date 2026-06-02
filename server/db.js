@@ -1,8 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
-const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { seedDefaultMaterials } = require('./seedMaterials');
+const { seedDefaultMaterials, syncPptPdfPreviews } = require('./seedMaterials');
 const dbPath = path.join(__dirname, 'data.db');
 const db = new Database(dbPath);
 
@@ -210,28 +209,7 @@ function initDatabase() {
 
   // Seed materials from server/seed-materials/ (files + manifest.json)
   seedDefaultMaterials(db);
-
-  // Seed tracked upload material (from repo uploads/)
-  const legacyMaterial = db.prepare('SELECT id FROM materials WHERE original_filename = ?').get('尚润装饰材料品牌介绍.pptx');
-  if (!legacyMaterial) {
-    const legacyPath = path.join(__dirname, 'uploads', 'material-1780415873246-rlgm11.pptx');
-    if (fs.existsSync(legacyPath)) {
-      db.prepare(
-        `INSERT INTO materials (title, category_id, tags, file_url, file_type, original_filename, visibility, is_pinned, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(
-        '尚润装饰材料品牌介绍',
-        1,
-        JSON.stringify(['材料', '品牌', '水电', '瓦工', '油工', '吊顶', '门窗', '定制']),
-        '/uploads/material-1780415873246-rlgm11.pptx',
-        'ppt',
-        '尚润装饰材料品牌介绍.pptx',
-        'user',
-        1,
-        0
-      );
-    }
-  }
+  syncPptPdfPreviews(db);
 }
 function migrateTable() {
   // Add columns to users if missing

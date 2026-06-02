@@ -31,6 +31,31 @@ function getFileType(ext) {
   return FILE_TYPES[ext.toLowerCase()] || 'link';
 }
 
+function convertPptToPdfWindows(sourcePath, pdfPath) {
+  const scriptPath = path.join(require('os').tmpdir(), `ppt2pdf-${Date.now()}.ps1`);
+  const script = `
+$ErrorActionPreference = 'Stop'
+$src = '${sourcePath.replace(/'/g, "''")}'
+$dst = '${pdfPath.replace(/'/g, "''")}'
+$pp = New-Object -ComObject PowerPoint.Application
+$pp.Visible = 1
+$pres = $pp.Presentations.Open($src, $true, $true, $false)
+$pres.SaveAs($dst, 32)
+$pres.Close()
+$pp.Quit()
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($pp) | Out-Null
+`;
+  fs.writeFileSync(scriptPath, script, 'utf8');
+  try {
+    execSync(`powershell -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}"`, {
+      timeout: 120000,
+      stdio: 'pipe'
+    });
+  } finally {
+    fs.unlinkSync(scriptPath);
+  }
+}
+
 function tryConvertPptToPdf(sourcePath, uploadsDir, uploadFilename) {
   const ext = path.extname(sourcePath).toLowerCase();
   if (!['.ppt', '.pptx'].includes(ext)) {
@@ -41,19 +66,65 @@ function tryConvertPptToPdf(sourcePath, uploadsDir, uploadFilename) {
   const pdfName = `${baseName}.pdf`;
   const pdfPath = path.join(uploadsDir, pdfName);
 
+  if (fs.existsSync(pdfPath)) {
+    return { pdf_url: `/uploads/${pdfName}`, pdf_filename: pdfName };
+  }
+
   try {
     execSync(
       `libreoffice --headless --convert-to pdf --outdir "${uploadsDir}" "${sourcePath}"`,
-      { timeout: 30000 }
+      { timeout: 60000, stdio: 'pipe' }
     );
     if (fs.existsSync(pdfPath)) {
       return { pdf_url: `/uploads/${pdfName}`, pdf_filename: pdfName };
     }
-  } catch (e) {
-    console.warn('PPT to PDF conversion skipped:', e.message);
+  } catch {
+    // LibreOffice not available
+  }
+
+  if (process.platform === 'win32') {
+    try {
+      convertPptToPdfWindows(sourcePath, pdfPath);
+      if (fs.existsSync(pdfPath)) {
+        return { pdf_url: `/uploads/${pdfName}`, pdf_filename: pdfName };
+      }
+    } catch (e) {
+      console.warn('PowerPoint PDF conversion skipped:', e.message);
+    }
   }
 
   return { pdf_url: null, pdf_filename: null };
+}
+
+function resolvePdfPreview(item, uploadFilename, uploadsDir) {
+  if (item.pdf_file) {
+    const pdfPath = path.join(uploadsDir, item.pdf_file);
+    if (fs.existsSync(pdfPath)) {
+      return { pdf_url: `/uploads/${item.pdf_file}`, pdf_filename: item.pdf_file };
+    }
+  }
+  const sourcePath = path.join(uploadsDir, uploadFilename);
+  return tryConvertPptToPdf(sourcePath, uploadsDir, uploadFilename);
+}
+
+function syncPptPdfPreviews(db) {
+  const materials = db.prepare(`
+    SELECT id, file_url, file_type FROM materials
+    WHERE file_type IN ('ppt', 'pptx') AND (pdf_url IS NULL OR pdf_url = '')
+  `).all();
+  const update = db.prepare('UPDATE materials SET pdf_url = ?, pdf_filename = ? WHERE id = ?');
+
+  for (const material of materials) {
+    if (!material.file_url) continue;
+    const uploadFilename = path.basename(material.file_url);
+    const sourcePath = path.join(UPLOADS_DIR, uploadFilename);
+    if (!fs.existsSync(sourcePath)) continue;
+
+    const { pdf_url, pdf_filename } = tryConvertPptToPdf(sourcePath, UPLOADS_DIR, uploadFilename);
+    if (pdf_url) {
+      update.run(pdf_url, pdf_filename, material.id);
+    }
+  }
 }
 
 function copyToUploads(sourcePath, originalFilename) {
@@ -86,22 +157,38 @@ function seedDefaultMaterials(db) {
   let seeded = 0;
 
   for (const item of manifest) {
-    const sourcePath = path.join(SEED_DIR, item.filename);
-    if (!fs.existsSync(sourcePath)) {
-      console.warn(`Seed file missing: ${item.filename}`);
-      continue;
-    }
-
     if (existsByFilename.get(item.filename)) {
       continue;
     }
 
-    const { uploadFilename, destPath, file_url } = copyToUploads(sourcePath, item.filename);
+    let sourcePath;
+    let file_url;
+    let destPath;
+    let uploadFilename;
+
+    if (item.upload_file) {
+      uploadFilename = item.upload_file;
+      sourcePath = path.join(UPLOADS_DIR, uploadFilename);
+      destPath = sourcePath;
+      file_url = `/uploads/${uploadFilename}`;
+      if (!fs.existsSync(sourcePath)) {
+        console.warn(`Upload file missing: ${item.upload_file}`);
+        continue;
+      }
+    } else {
+      sourcePath = path.join(SEED_DIR, item.filename);
+      if (!fs.existsSync(sourcePath)) {
+        console.warn(`Seed file missing: ${item.filename}`);
+        continue;
+      }
+      ({ uploadFilename, destPath, file_url } = copyToUploads(sourcePath, item.filename));
+    }
+
     const ext = path.extname(item.filename).toLowerCase();
     const file_type = getFileType(ext);
     const category_id = categoryByName[item.category] || null;
     const tags = JSON.stringify(item.tags || []);
-    const { pdf_url, pdf_filename } = tryConvertPptToPdf(destPath, UPLOADS_DIR, uploadFilename);
+    const { pdf_url, pdf_filename } = resolvePdfPreview(item, uploadFilename, UPLOADS_DIR);
 
     insertMaterial.run(
       item.title || path.basename(item.filename, ext),
@@ -124,4 +211,4 @@ function seedDefaultMaterials(db) {
   }
 }
 
-module.exports = { seedDefaultMaterials };
+module.exports = { seedDefaultMaterials, syncPptPdfPreviews, tryConvertPptToPdf };

@@ -25,7 +25,14 @@ initDatabase();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders(res, filePath) {
+    res.setHeader('Content-Disposition', 'inline');
+    if (filePath.endsWith('.pdf')) {
+      res.setHeader('Content-Type', 'application/pdf');
+    }
+  }
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);

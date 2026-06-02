@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMaterialsStore } from '../../stores/materials'
 import VueOfficePptx from '@vue-office/pptx'
@@ -17,19 +17,17 @@ const loading = ref(true)
 const error = ref('')
 const pptData = ref(null)
 const previewError = ref('')
+const pdfPreviewUrl = ref('')
 
 const materialId = computed(() => props.id || route.params.id)
 
-const baseUrl = computed(() => {
-  return 'http://localhost:3000'
-})
-
-const fileUrl = computed(() => {
-  if (!material.value || !material.value.file_url) return ''
-  const url = material.value.file_url
+function resolveAssetUrl(url) {
+  if (!url) return ''
   if (url.startsWith('http')) return url
-  return baseUrl.value + url
-})
+  return url.startsWith('/') ? url : `/${url}`
+}
+
+const fileUrl = computed(() => resolveAssetUrl(material.value?.file_url))
 
 const fileType = computed(() => material.value?.file_type || 'link')
 
@@ -38,12 +36,7 @@ const isPdf = computed(() => fileType.value === 'pdf')
 const isLink = computed(() => fileType.value === 'link')
 const isPpt = computed(() => ['ppt', 'pptx'].includes(fileType.value))
 const hasPdf = computed(() => material.value?.pdf_url)
-const pdfUrl = computed(() => {
-  if (!material.value || !material.value.pdf_url) return ''
-  const url = material.value.pdf_url
-  if (url.startsWith('http')) return url
-  return baseUrl.value + url
-})
+const pdfUrl = computed(() => resolveAssetUrl(material.value?.pdf_url))
 
 const galleryIndex = ref(0)
 const galleryImages = computed(() => {
@@ -73,7 +66,29 @@ function formatTime(dateStr) {
 
 function openLink() {
   if (fileUrl.value) {
-    window.open(fileUrl.value, '_blank')
+    window.open(fileUrl.value, '_blank', 'noopener,noreferrer')
+  }
+}
+
+function releasePdfPreviewUrl() {
+  if (pdfPreviewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(pdfPreviewUrl.value)
+  }
+  pdfPreviewUrl.value = ''
+}
+
+async function loadPdfPreview(url) {
+  releasePdfPreviewUrl()
+  if (!url) return
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const buffer = await response.arrayBuffer()
+    const blob = new Blob([buffer], { type: 'application/pdf' })
+    pdfPreviewUrl.value = URL.createObjectURL(blob)
+  } catch (e) {
+    previewError.value = '预览加载失败，请稍后重试'
+    console.error('Failed to load PDF preview:', e)
   }
 }
 
@@ -105,10 +120,15 @@ onMounted(async () => {
     if (res.code === 200) {
       material.value = res.data
       const type = res.data.file_type
-      const url = res.data.file_url
-      if (['ppt', 'pptx'].includes(type) && url && !res.data.pdf_url) {
-        const fullUrl = url.startsWith('http') ? url : baseUrl.value + url
-        await loadPptPreview(fullUrl)
+      const url = resolveAssetUrl(res.data.file_url)
+      const pdf = resolveAssetUrl(res.data.pdf_url)
+
+      if (type === 'pdf' && url) {
+        await loadPdfPreview(url)
+      } else if (['ppt', 'pptx'].includes(type) && pdf) {
+        await loadPdfPreview(pdf)
+      } else if (['ppt', 'pptx'].includes(type) && url) {
+        await loadPptPreview(url)
       }
     } else {
       error.value = res.message || '资料不存在'
@@ -119,6 +139,10 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+onUnmounted(() => {
+  releasePdfPreviewUrl()
 })
 </script>
 
@@ -176,19 +200,33 @@ onMounted(async () => {
 
         <!-- PDF 预览 -->
         <div v-if="isPdf" class="preview-frame pdf-preview">
-          <iframe :src="fileUrl" frameborder="0" allowfullscreen></iframe>
+          <div v-if="!pdfPreviewUrl && !previewError" class="loading-state inline-loading">
+            <div class="spinner"></div>
+            <p>正在加载 PDF 预览...</p>
+          </div>
+          <iframe v-else-if="pdfPreviewUrl" :src="pdfPreviewUrl" frameborder="0" allowfullscreen></iframe>
+          <div v-else class="hint-content">
+            <p>{{ previewError || '预览加载失败' }}</p>
+          </div>
         </div>
 
         <!-- 图片预览 -->
         <div v-else-if="isImage" class="preview-frame image-preview">
           <div class="image-viewer">
-            <img :src="fileUrl" :alt="material.title" @click="openLink">
+            <img :src="fileUrl" :alt="material.title">
           </div>
         </div>
 
-        <!-- PPT 预览 -->
+        <!-- PPT 预览（优先 PDF 预览版） -->
         <div v-else-if="isPpt && hasPdf" class="preview-frame pdf-preview">
-          <iframe :src="pdfUrl" frameborder="0" allowfullscreen></iframe>
+          <div v-if="!pdfPreviewUrl && !previewError" class="loading-state inline-loading">
+            <div class="spinner"></div>
+            <p>正在加载预览...</p>
+          </div>
+          <iframe v-else-if="pdfPreviewUrl" :src="pdfPreviewUrl" frameborder="0" allowfullscreen></iframe>
+          <div v-else class="hint-content">
+            <p>{{ previewError || '预览加载失败' }}</p>
+          </div>
         </div>
         <div v-else-if="isPpt && fileUrl" class="preview-frame ppt-preview">
           <div v-if="!pptData && !previewError" class="loading-state inline-loading">
@@ -398,7 +436,6 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  cursor: zoom-in;
 }
 
 .image-viewer img {
