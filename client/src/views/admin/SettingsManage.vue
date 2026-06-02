@@ -64,16 +64,20 @@ async function handleSave() {
 </template>
 
 <style scoped>
-.admin-header { margin-bottom: 32px; }
-.admin-header h1 { font-size: 24px; font-weight: 700; }
-.admin-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; max-width: 640px; }
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; font-size: 14px; }
-.form-group input, .form-group textarea { width: 100%; padding: 12px 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--text-primary); font-family: inherit; }
-.form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
-.form-group textarea { resize: vertical; }
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: all 0.3s ease; }
-.btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
-.save-success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: #22c55e; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; text-align: center; }
+.save-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .admin-card {
+    max-width: 100%;
+  }
+}
 </style>

@@ -1,14 +1,24 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const sidebarOpen = ref(false)
 
 function logout() {
   authStore.logout()
   router.push('/admin/login')
+}
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value
+}
+
+function closeSidebar() {
+  sidebarOpen.value = false
 }
 
 const navItems = [
@@ -28,7 +38,9 @@ const navItems = [
 
 <template>
   <div class="admin-layout">
-    <aside class="admin-sidebar">
+    <button class="sidebar-toggle" @click="toggleSidebar">☰</button>
+    <div class="sidebar-overlay" :class="{ show: sidebarOpen }" @click="closeSidebar"></div>
+    <aside class="admin-sidebar" :class="{ open: sidebarOpen }">
       <div class="sidebar-logo">
         <div class="logo-icon">◆</div>
         后台管理
@@ -39,6 +51,7 @@ const navItems = [
           :key="item.path"
           :to="item.path"
           :class="{ active: route.path === item.path }"
+          @click="closeSidebar"
         >
           <span>{{ item.icon }}</span>
           {{ item.label }}
@@ -71,6 +84,7 @@ const navItems = [
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  z-index: 100;
 }
 
 .sidebar-logo {
@@ -127,6 +141,7 @@ const navItems = [
 .sidebar-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--border);
+  margin-top: auto;
 }
 
 .sidebar-link {
@@ -157,5 +172,56 @@ const navItems = [
   flex: 1;
   margin-left: 240px;
   padding: 32px;
+}
+
+/* Mobile */
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 201;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-toggle {
+    display: flex;
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  .admin-main {
+    margin-left: 0;
+    padding: 72px 16px 16px;
+  }
 }
 </style>

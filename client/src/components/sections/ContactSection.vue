@@ -378,4 +378,33 @@ async function handleSubmit() {
   font-size: 14px;
   text-align: center;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section {
+    padding: 80px 20px;
+  }
+
+  .contact-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .contact-info h3 {
+    font-size: 28px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form {
+    padding: 24px;
+  }
+
+  .wechat-qr {
+    width: 120px;
+    height: 120px;
+  }
+}
 </style>

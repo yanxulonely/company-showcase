@@ -76,16 +76,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.admin-header {
-  margin-bottom: 32px;
-}
-
-.admin-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -130,49 +120,10 @@ onMounted(async () => {
   margin-top: 2px;
 }
 
-.admin-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-}
-
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.admin-table th,
-.admin-table td {
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-}
-
-.admin-table th {
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.badge {
-  display: inline-flex;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.badge-pending {
-  background: rgba(251, 191, 36, 0.1);
-  color: #fbbf24;
-}
-
-.badge-processed {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 }
 </style>

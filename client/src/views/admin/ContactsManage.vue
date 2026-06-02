@@ -165,19 +165,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.admin-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-}
-
-/* 统计卡片 */
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -215,7 +202,6 @@ onMounted(() => {
 .stat-card.stat-contacted .stat-number { color: #22c55e; }
 .stat-card.stat-invalid .stat-number { color: #ef4444; }
 
-/* 筛选栏 */
 .filter-bar {
   display: flex;
   gap: 8px;
@@ -224,7 +210,7 @@ onMounted(() => {
 
 .filter-btn {
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-secondary);
@@ -243,37 +229,6 @@ onMounted(() => {
   background: var(--accent);
   color: white;
   border-color: var(--accent);
-}
-
-/* 表格 */
-.admin-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  overflow-x: auto;
-}
-
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.admin-table th,
-.admin-table td {
-  padding: 12px 14px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.admin-table th {
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .cell-time {
@@ -296,31 +251,6 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-/* Badge */
-.badge {
-  display: inline-flex;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.badge-pending {
-  background: rgba(251, 191, 36, 0.1);
-  color: #fbbf24;
-}
-
-.badge-contacted {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
-}
-
-.badge-invalid {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-
-/* 备注 */
 .cell-note {
   max-width: 200px;
 }
@@ -343,7 +273,7 @@ onMounted(() => {
 .note-editor textarea {
   width: 100%;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -363,7 +293,6 @@ onMounted(() => {
   gap: 6px;
 }
 
-/* 操作 */
 .cell-actions {
   white-space: nowrap;
 }
@@ -376,7 +305,7 @@ onMounted(() => {
 
 .status-select {
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -389,71 +318,18 @@ onMounted(() => {
   border-color: var(--accent);
 }
 
-/* 按钮 */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: inherit;
-}
+@media (max-width: 768px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 13px;
-}
+  .filter-bar {
+    flex-wrap: wrap;
+  }
 
-.btn-primary {
-  background: var(--accent);
-  color: white;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-}
-
-.btn-ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.2);
-}
-
-.btn-export {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  transition: all 0.3s ease;
-}
-
-.btn-export:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.empty-tip {
-  color: var(--text-muted);
-  text-align: center;
-  padding: 40px;
+  .cell-desc,
+  .cell-note {
+    max-width: 120px;
+  }
 }
 </style>

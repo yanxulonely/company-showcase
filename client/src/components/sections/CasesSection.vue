@@ -274,4 +274,51 @@ onMounted(() => {
 .case-card.clickable:hover .case-link {
   color: var(--accent);
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section {
+    padding: 80px 20px;
+  }
+
+  .section-header h2 {
+    font-size: 32px;
+  }
+
+  .filter-bar {
+    gap: 6px;
+  }
+
+  .filter-tag {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  .cases-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .case-image {
+    height: 180px;
+  }
+
+  .case-image-placeholder {
+    font-size: 44px;
+  }
+
+  .case-content {
+    padding: 16px;
+  }
+
+  .case-title {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .cases-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 </style>
