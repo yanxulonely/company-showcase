@@ -4,5 +4,4 @@ dist/
 *.db-shm
 *.db-wal
 .env
-uploads/
 .DS_Store
