@@ -66,15 +66,15 @@ onUnmounted(() => {
     <div class="hero-content">
       <div class="hero-badge">
         <span class="hero-badge-dot"></span>
-        专业数字化解决方案提供商
+专注品质装修 · 值得信赖
       </div>
       <template v-if="hasBanners && activeBanners[currentBanner]">
-        <h1 v-html="activeBanners[currentBanner].title || appStore.settings.hero_title || '为企业构建<br><span class=\'gradient-text\'>下一代数字基础设施</span>'"></h1>
-        <p class="hero-desc">{{ activeBanners[currentBanner].subtitle || appStore.settings.hero_desc || '我们专注于为全球企业提供前沿的技术解决方案，从架构设计到落地交付，助力客户在数字化浪潮中保持领先。' }}</p>
+        <h1 v-html="activeBanners[currentBanner].title || appStore.settings.hero_title || '用心装修每一个家<br><span class=\'gradient-text\'>尚润装饰 值得信赖</span>'"></h1>
+        <p class="hero-desc">{{ activeBanners[currentBanner].subtitle || appStore.settings.hero_desc || '尚润装饰专注室内外装修设计与施工，拥有多年行业经验，严选材料、精工细作，为您提供一站式装修解决方案。' }}</p>
       </template>
       <template v-else>
-        <h1 v-html="appStore.settings.hero_title || '为企业构建<br><span class=\'gradient-text\'>下一代数字基础设施</span>'"></h1>
-        <p class="hero-desc">{{ appStore.settings.hero_desc || '我们专注于为全球企业提供前沿的技术解决方案，从架构设计到落地交付，助力客户在数字化浪潮中保持领先。' }}</p>
+        <h1 v-html="appStore.settings.hero_title || '用心装修每一个家<br><span class=\'gradient-text\'>尚润装饰 值得信赖</span>'"></h1>
+        <p class="hero-desc">{{ appStore.settings.hero_desc || '尚润装饰专注室内外装修设计与施工，拥有多年行业经验，严选材料、精工细作，为您提供一站式装修解决方案。' }}</p>
       </template>
       <div class="hero-buttons">
         <a href="#cases" class="btn-primary" @click.prevent="$el.closest('section').nextElementSibling?.scrollIntoView({ behavior: 'smooth' })">查看案例 →</a>

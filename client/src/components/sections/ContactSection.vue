@@ -31,20 +31,20 @@ async function handleSubmit() {
       <!-- 左侧：联系信息 + 微信二维码 -->
       <div class="contact-info fade-in-up">
         <h3>开始合作</h3>
-        <p>无论是项目咨询还是技术交流，我们都期待与您的对话。通常在 24 小时内回复。</p>
+        <p>无论是装修咨询还是设计方案，我们都期待与您的对话。通常在 24 小时内回复。</p>
         <ul class="contact-details">
           <li>
             <span>📍</span>
             <div>
               <div class="detail-label">公司地址</div>
-              <div>{{ appStore.settings.contact_address || '北京市朝阳区科技大厦' }}</div>
+              <div>{{ appStore.settings.contact_address || '请在后台设置公司地址' }}</div>
             </div>
           </li>
           <li>
             <span>📞</span>
             <div>
               <div class="detail-label">咨询电话</div>
-              <div>{{ appStore.settings.contact_phone || '400-888-8888' }}</div>
+              <div>{{ appStore.settings.contact_phone || '请在后台设置联系电话' }}</div>
             </div>
           </li>
           <li>

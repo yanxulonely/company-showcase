@@ -2,10 +2,10 @@
 import { ref, onMounted } from 'vue'
 
 const stats = [
-  { target: 500, label: '成功项目' },
+  { target: 500, label: '成功案例' },
   { target: 98, label: '客户满意度 %' },
-  { target: 50, label: '行业覆盖' },
-  { target: 10, label: '年经验' },
+  { target: 10, label: '年行业经验' },
+  { target: 50, label: '设计师团队' },
 ]
 
 const displayed = ref(stats.map(() => 0))
