@@ -130,65 +130,62 @@ function initDatabase() {
   const settingsCount = db.prepare('SELECT COUNT(*) as count FROM settings').get().count;
   if (settingsCount === 0) {
     const insertSetting = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)');
-    insertSetting.run('company_name', '公司名称');
-    insertSetting.run('company_slogan', '专注数字化转型，为企业创造可持续的技术价值');
-    insertSetting.run('hero_title', '为企业构建<br>下一代数字基础设施');
-    insertSetting.run('hero_desc', '我们专注于为全球企业提供前沿的技术解决方案，从架构设计到落地交付，助力客户在数字化浪潮中保持领先。');
-    insertSetting.run('contact_address', '北京市朝阳区科技大厦');
-    insertSetting.run('contact_phone', '400-888-8888');
-    insertSetting.run('contact_email', 'contact@company.com');
-    insertSetting.run('footer_text', '© 2026 公司名称. All rights reserved.');
+    insertSetting.run('company_name', '尚润装饰');
+    insertSetting.run('company_slogan', '专注品质装修，为您打造理想家园');
+    insertSetting.run('hero_title', '用心装修每一个家<br><span class=\'gradient-text\'>尚润装饰 值得信赖</span>');
+    insertSetting.run('hero_desc', '尚润装饰专注室内外装修设计与施工，拥有多年行业经验，严选材料、精工细作，为您提供一站式装修解决方案。');
+    insertSetting.run('contact_address', '请在后台设置公司地址');
+    insertSetting.run('contact_phone', '请在后台设置联系电话');
+    insertSetting.run('contact_email', '请在后台设置联系邮箱');
+    insertSetting.run('footer_text', '© 2026 尚润装饰. All rights reserved.');
+    insertSetting.run('slogan', '专注品质装修，值得信赖');
   }
 
   // Seed default cases
   const casesCount = db.prepare('SELECT COUNT(*) as count FROM cases').get().count;
   if (casesCount === 0) {
     const insertCase = db.prepare('INSERT INTO cases (title, description, tag, icon, sort_order) VALUES (?, ?, ?, ?, ?)');
-    insertCase.run('智能制造数字化转型', '为某大型汽车零部件企业构建智能工厂系统，实现生产效率提升 40%。', '制造业', '🏭', 1);
-    insertCase.run('智慧医疗平台', '为三甲医院打造一站式智慧医疗解决方案，优化患者就医全流程。', '医疗健康', '🏥', 2);
-    insertCase.run('全渠道零售系统', '打通线上线下数据孤岛，构建统一的全渠道运营中台。', '零售电商', '🛒', 3);
+    insertCase.run('现代简约 · 三室两厅', '120㎡现代简约风格，整体以白色和原木色为主调，简洁大方，适合年轻家庭。', '现代简约', '🏠', 1);
+    insertCase.run('新中式 · 四室两厅', '160㎡新中式风格，融入传统中式元素，沉稳大气，彰显文化底蕴。', '新中式', '🏡', 2);
+    insertCase.run('轻奢风格 · 复式', '200㎡轻奢风格复式楼，金属质感与大理石搭配，品质生活从家开始。', '轻奢', '🏢', 3);
   }
 
   // Seed default capabilities
   const capsCount = db.prepare('SELECT COUNT(*) as count FROM capabilities').get().count;
   if (capsCount === 0) {
     const insertCap = db.prepare('INSERT INTO capabilities (title, description, icon, sort_order) VALUES (?, ?, ?, ?)');
-    insertCap.run('软件开发', '企业级应用定制开发，从微服务架构到单体应用，覆盖全技术栈。', '💻', 1);
-    insertCap.run('云原生架构', '基于 K8s 的云原生解决方案，实现弹性伸缩与高可用部署。', '☁️', 2);
-    insertCap.run('AI 智能', '大模型应用开发，智能客服、文档分析、图像识别等场景落地。', '🤖', 3);
-    insertCap.run('数据工程', '数据中台建设，实时数仓、数据治理、BI 可视化全链路支持。', '📊', 4);
-    insertCap.run('安全合规', '等保合规、渗透测试、安全加固，保障企业数字资产安全。', '🔒', 5);
-    insertCap.run('移动开发', 'iOS / Android / 小程序 / H5，跨平台一站式移动解决方案。', '📱', 6);
+    insertCap.run('室内设计', '专业设计团队，量身定制装修方案，从现代简约到新中式，满足您的个性化需求。', '🎨', 1);
+    insertCap.run('精工施工', '自有施工团队，严格遵循施工标准，水电/泥瓦/木工/油漆全流程把控。', '🔨', 2);
+    insertCap.run('材料严选', '一线品牌建材直供，环保达标，品质有保障，让您装修更放心。', '🏗️', 3);
+    insertCap.run('全屋定制', '橱柜、衣柜、鞋柜等全屋家具定制，空间利用最大化，风格统一协调。', '🏠', 4);
+    insertCap.run('软装搭配', '窗帘、灯具、家具、饰品一站式选购，专业软装设计师为您搭配。', '🛋️', 5);
+    insertCap.run('售后保障', '隐蔽工程5年质保，整体工程2年质保，24小时响应售后问题。', '🛡️', 6);
   }
 
   // Seed default reviews
   const reviewsCount = db.prepare('SELECT COUNT(*) as count FROM reviews').get().count;
   if (reviewsCount === 0) {
     const insertReview = db.prepare('INSERT INTO reviews (name, company, content, rating, avatar_bg, sort_order) VALUES (?, ?, ?, ?, ?, ?)');
-    insertReview.run('张明辉', '某制造企业 CTO', '团队的技术实力和项目管理能力都非常出色，交付质量远超预期。特别是在架构设计阶段提出的优化建议，为我们节省了大量后期成本。', 5, 1, 1);
-    insertReview.run('李婉清', '某科技公司 VP', '从需求沟通到上线运维，整个过程非常专业透明。响应速度快，问题解决及时，是值得信赖的长期合作伙伴。', 5, 2, 2);
-    insertReview.run('王建国', '某互联网公司 技术总监', '帮助我们完成了核心系统的云原生改造，系统稳定性从 99.9% 提升到 99.99%，运维成本反而降低了 30%。', 5, 3, 3);
+    insertReview.run('张先生', '明昊嘉苑业主', '尚润装饰的施工非常规范，材料都是正品，设计师也很耐心地帮我调整方案，最终效果超出预期！', 5, 1, 1);
+    insertReview.run('李女士', '锦绣花园业主', '从设计到施工全程跟进，有问题及时沟通解决，工期也没有拖延，非常满意。', 5, 2, 2);
+    insertReview.run('王先生', '东方家园业主', '报价透明，没有隐藏费用，施工质量很好，特别是水电改造做得很专业。', 5, 3, 3);
   }
 
   // Seed default standards
   const stdCount = db.prepare('SELECT COUNT(*) as count FROM standards').get().count;
   if (stdCount === 0) {
     const insertStd = db.prepare('INSERT INTO standards (title, type, items, sort_order) VALUES (?, ?, ?, ?)');
-    insertStd.run('执行标准', 'execution', JSON.stringify([
-      '需求调研与业务分析',
-      '技术方案设计与评审',
-      '敏捷开发与持续交付',
-      '全流程质量保障体系',
-      '上线支持与运维交接',
-      '质保期免费维护服务'
+    insertStd.run('施工标准', 'execution', JSON.stringify([
+      '水电改造：横平竖直，强弱电分开，水管打压试验合格',
+      '泥瓦工程：墙面平整度≤3mm，地砖空鼓率≤5%',
+      '木工工程：板材环保E1级以上，接缝严密',
+      '油漆工程：墙面平整光滑，无色差、无流坠'
     ]), 1);
     insertStd.run('报价标准', 'pricing', JSON.stringify([
-      '按需定价，透明报价',
-      '分阶段付款，降低风险',
-      '免费需求评估与咨询',
-      '灵活的合作模式',
-      '增值服务按需选购',
-      '长期合作优惠方案'
+      '设计费：按㎡计算，免费量房出方案',
+      '材料费：一线品牌直供，明码标价',
+      '人工费：按工序报价，透明公开',
+      '管理费：含全程监理、验收、保洁'
     ]), 2);
   }
 
@@ -196,18 +193,18 @@ function initDatabase() {
   const bannersCount = db.prepare('SELECT COUNT(*) as count FROM banners').get().count;
   if (bannersCount === 0) {
     const insertBanner = db.prepare('INSERT INTO banners (title, subtitle, image_url, sort_order) VALUES (?, ?, ?, ?)');
-    insertBanner.run('数字化转型加速器', '助力企业快速实现数字化升级', '/uploads/default-banner-1.jpg', 1);
-    insertBanner.run('云原生解决方案', '弹性架构，无限可能', '/uploads/default-banner-2.jpg', 2);
+    insertBanner.run('用心装修每一个家', '尚润装饰，品质生活从家开始', '/uploads/default-banner-1.jpg', 1);
+    insertBanner.run('精工细作 品质保障', '自有施工团队，严格施工标准，让您装修更放心', '/uploads/default-banner-2.jpg', 2);
   }
 
   // Seed default material categories
   const catCount = db.prepare('SELECT COUNT(*) as count FROM material_categories').get().count;
   if (catCount === 0) {
     const insertCat = db.prepare('INSERT INTO material_categories (name, sort_order) VALUES (?, ?)');
-    insertCat.run('产品手册', 1);
-    insertCat.run('技术文档', 2);
-    insertCat.run('案例方案', 3);
-    insertCat.run('培训资料', 4);
+    insertCat.run('装修材料清单', 1);
+    insertCat.run('施工工艺说明', 2);
+    insertCat.run('报价参考与预算', 3);
+    insertCat.run('培训课件与话术', 4);
   }
 }
 
