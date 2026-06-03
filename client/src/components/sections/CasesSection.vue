@@ -1,9 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useCasesStore } from '../../stores/cases'
+import SkeletonCard from '../SkeletonCard.vue'
+import SharePoster from '../SharePoster.vue'
 
 const casesStore = useCasesStore()
 const activeFilter = ref('全部')
+const loading = ref(true)
 
 const gradients = [
   'case-image-placeholder-1',
@@ -21,6 +24,16 @@ const filteredCases = computed(() => {
   return casesStore.items.filter(i => i.tag === activeFilter.value)
 })
 
+// Share poster
+const posterVisible = ref(false)
+const posterCase = ref(null)
+
+function openShare(e, item) {
+  e.stopPropagation()
+  posterCase.value = item
+  posterVisible.value = true
+}
+
 function openCase(item) {
   if (item.external_url) {
     window.open(item.external_url, '_blank')
@@ -31,8 +44,9 @@ function setFilter(tag) {
   activeFilter.value = tag
 }
 
-onMounted(() => {
-  casesStore.fetchAll()
+onMounted(async () => {
+  await casesStore.fetchAll()
+  loading.value = false
 })
 </script>
 
@@ -57,26 +71,34 @@ onMounted(() => {
     </div>
 
     <div class="cases-grid">
-      <div
-        v-for="(item, i) in filteredCases"
-        :key="item.id"
-        class="case-card fade-in-up"
-        :style="{ transitionDelay: i * 0.1 + 's' }"
-        :class="{ clickable: item.external_url }"
-        @click="openCase(item)"
-      >
-        <div class="case-image">
-          <div v-if="item.image_url" class="case-image-bg" :style="{ backgroundImage: `url(${item.image_url})` }"></div>
-          <div v-else class="case-image-placeholder" :class="gradients[i % 3]">{{ item.icon }}</div>
-          <span class="case-tag">{{ item.tag }}</span>
+      <template v-if="loading">
+        <SkeletonCard v-for="n in 6" :key="'sk-' + n" type="case" />
+      </template>
+      <template v-else>
+        <div
+          v-for="(item, i) in filteredCases"
+          :key="item.id"
+          class="case-card fade-in-up"
+          :style="{ transitionDelay: i * 0.1 + 's' }"
+          :class="{ clickable: item.external_url }"
+          @click="openCase(item)"
+        >
+          <div class="case-image">
+            <div v-if="item.image_url" class="case-image-bg" v-lazy-img:url="item.image_url"></div>
+            <div v-else class="case-image-placeholder" :class="gradients[i % 3]">{{ item.icon }}</div>
+            <span class="case-tag">{{ item.tag }}</span>
+            <button class="share-btn" @click="openShare($event, item)" title="分享海报">📤</button>
+          </div>
+          <div class="case-content">
+            <h3 class="case-title">{{ item.title }}</h3>
+            <p class="case-desc">{{ item.description }}</p>
+            <span v-if="item.external_url" class="case-link">查看详情 →</span>
+          </div>
         </div>
-        <div class="case-content">
-          <h3 class="case-title">{{ item.title }}</h3>
-          <p class="case-desc">{{ item.description }}</p>
-          <span v-if="item.external_url" class="case-link">查看详情 →</span>
-        </div>
-      </div>
+      </template>
     </div>
+
+    <SharePoster v-model:visible="posterVisible" :case-item="posterCase" />
     <p v-if="!filteredCases.length" style="color: var(--text-muted); text-align: center; padding: 60px 0;">暂无案例</p>
   </section>
 </template>
@@ -196,6 +218,38 @@ onMounted(() => {
   height: 220px;
   position: relative;
   overflow: hidden;
+}
+
+.share-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.25s ease;
+  z-index: 5;
+}
+
+.case-card:hover .share-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.share-btn:hover {
+  background: var(--accent);
+  transform: scale(1.1) !important;
 }
 
 .case-image-bg {

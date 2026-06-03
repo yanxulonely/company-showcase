@@ -1,13 +1,16 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useReviewsStore } from '../../stores/reviews'
+import SkeletonCard from '../SkeletonCard.vue'
 
 const reviewsStore = useReviewsStore()
+const loading = ref(true)
 
 const avatarClasses = ['review-avatar-1', 'review-avatar-2', 'review-avatar-3']
 
-onMounted(() => {
-  reviewsStore.fetchAll()
+onMounted(async () => {
+  await reviewsStore.fetchAll()
+  loading.value = false
 })
 </script>
 
@@ -18,17 +21,22 @@ onMounted(() => {
       <h2>客户评价</h2>
     </div>
     <div class="reviews-grid">
-      <div v-for="(item, i) in reviewsStore.items" :key="item.id" class="review-card fade-in-up" :style="{ transitionDelay: i * 0.1 + 's' }">
-        <div class="review-stars">{{ '★'.repeat(item.rating) }}</div>
-        <p class="review-text">{{ item.content }}</p>
-        <div class="review-author">
-          <div class="review-avatar" :class="avatarClasses[item.avatar_bg - 1]">{{ item.name[0] }}</div>
-          <div>
-            <div class="review-name">{{ item.name }}</div>
-            <div class="review-company">{{ item.company }}</div>
+      <template v-if="loading">
+        <SkeletonCard v-for="n in 6" :key="'sk-' + n" type="review" />
+      </template>
+      <template v-else>
+        <div v-for="(item, i) in reviewsStore.items" :key="item.id" class="review-card fade-in-up" :style="{ transitionDelay: i * 0.1 + 's' }">
+          <div class="review-stars">{{ '★'.repeat(item.rating) }}</div>
+          <p class="review-text">{{ item.content }}</p>
+          <div class="review-author">
+            <div class="review-avatar" :class="avatarClasses[item.avatar_bg - 1]">{{ item.name[0] }}</div>
+            <div>
+              <div class="review-name">{{ item.name }}</div>
+              <div class="review-company">{{ item.company }}</div>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
   </section>
 </template>

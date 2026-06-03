@@ -1,11 +1,14 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCapabilitiesStore } from '../../stores/capabilities'
+import SkeletonCard from '../SkeletonCard.vue'
 
 const capsStore = useCapabilitiesStore()
+const loading = ref(true)
 
-onMounted(() => {
-  capsStore.fetchAll()
+onMounted(async () => {
+  await capsStore.fetchAll()
+  loading.value = false
 })
 </script>
 
@@ -16,12 +19,17 @@ onMounted(() => {
       <h2>核心能力</h2>
     </div>
     <div class="capabilities-grid">
-      <div v-for="(item, i) in capsStore.items" :key="item.id" class="capability-card fade-in-up" :style="{ transitionDelay: i * 0.05 + 's' }">
-        <div class="capability-icon">{{ item.icon }}</div>
-        <h3 class="capability-title">{{ item.title }}</h3>
-        <p class="capability-desc">{{ item.description }}</p>
-        <span class="capability-tag">查看详情 →</span>
-      </div>
+      <template v-if="loading">
+        <SkeletonCard v-for="n in 6" :key="'sk-' + n" type="capability" />
+      </template>
+      <template v-else>
+        <div v-for="(item, i) in capsStore.items" :key="item.id" class="capability-card fade-in-up" :style="{ transitionDelay: i * 0.05 + 's' }">
+          <div class="capability-icon">{{ item.icon }}</div>
+          <h3 class="capability-title">{{ item.title }}</h3>
+          <p class="capability-desc">{{ item.description }}</p>
+          <span class="capability-tag">查看详情 →</span>
+        </div>
+      </template>
     </div>
   </section>
 </template>

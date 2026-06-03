@@ -55,7 +55,7 @@ onUnmounted(() => {
         >
           <div
             class="carousel-bg"
-            :style="banner.image_url ? { backgroundImage: `url(${banner.image_url})` } : {}"
+            v-lazy-img:url="banner.image_url"
           ></div>
         </div>
       </transition-group>
