@@ -7,12 +7,23 @@ const router = express.Router();
 
 // Public: submit contact form
 router.post('/', (req, res) => {
-  const { name, phone, address, area, budget, company, contact_info, message } = req.body;
+  const {
+    name, phone, address, area, budget, company, contact_info, message,
+    designer_id, designer_name,
+  } = req.body;
   if (!name) return res.json({ code: 400, message: '姓名不能为空', data: null });
   if (!phone) return res.json({ code: 400, message: '手机号不能为空', data: null });
 
+  let resolvedDesignerName = designer_name || '';
+  let resolvedDesignerId = designer_id || null;
+  if (designer_id && !resolvedDesignerName) {
+    const d = db.prepare('SELECT name FROM designers WHERE id = ?').get(designer_id);
+    if (d) resolvedDesignerName = d.name;
+  }
+
   // Build message from fields
   const parts = [];
+  if (resolvedDesignerName) parts.push(`意向设计师: ${resolvedDesignerName}`);
   if (address) parts.push(`地址: ${address}`);
   if (area) parts.push(`面积: ${area}`);
   if (budget) parts.push(`预算: ${budget}`);
@@ -20,8 +31,15 @@ router.post('/', (req, res) => {
   const fullMessage = parts.join(' | ');
 
   const result = db.prepare(
-    'INSERT INTO contacts (name, company, contact_info, message) VALUES (?, ?, ?, ?)'
-  ).run(name, company || '', phone || contact_info || '', fullMessage);
+    'INSERT INTO contacts (name, company, contact_info, message, designer_id, designer_name) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(
+    name,
+    company || '',
+    phone || contact_info || '',
+    fullMessage,
+    resolvedDesignerId,
+    resolvedDesignerName || ''
+  );
   res.json({ code: 200, message: 'success', data: { id: result.lastInsertRowid } });
 });
 
@@ -55,6 +73,7 @@ router.get('/export', authMiddleware, (req, res) => {
     'ID': r.id,
     '姓名': r.name,
     '手机号': r.contact_info,
+    '意向设计师': r.designer_name || '',
     '公司': r.company || '',
     '需求描述': r.message || '',
     '状态': statusMap[r.status] || r.status,

@@ -111,6 +111,22 @@ function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (category_id) REFERENCES material_categories(id)
     );
+
+    CREATE TABLE IF NOT EXISTS designers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      title TEXT,
+      bio TEXT,
+      photo_url TEXT,
+      styles TEXT,
+      years_experience INTEGER DEFAULT 0,
+      project_count INTEGER DEFAULT 0,
+      slogan TEXT,
+      featured_case_ids TEXT,
+      sort_order INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Migrate existing tables: add new columns if missing
@@ -160,6 +176,41 @@ function initDatabase() {
     insertCap.run('全屋定制', '橱柜、衣柜、鞋柜等全屋家具定制，空间利用最大化，风格统一协调。', '🏠', 4);
     insertCap.run('软装搭配', '窗帘、灯具、家具、饰品一站式选购，专业软装设计师为您搭配。', '🛋️', 5);
     insertCap.run('售后保障', '隐蔽工程5年质保，整体工程2年质保，24小时响应售后问题。', '🛡️', 6);
+  }
+
+  // Seed default designers
+  const designersCount = db.prepare('SELECT COUNT(*) as count FROM designers').get().count;
+  if (designersCount === 0) {
+    const insertDesigner = db.prepare(`
+      INSERT INTO designers (
+        name, title, bio, photo_url, styles, years_experience, project_count,
+        slogan, featured_case_ids, sort_order, is_active
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+    `);
+    insertDesigner.run(
+      '林晓雯',
+      '首席设计师',
+      '国家注册室内设计师，擅长现代简约与轻奢风格，注重空间采光与收纳规划，善于在有限面积内实现功能与美感平衡。',
+      '',
+      JSON.stringify(['现代简约', '轻奢']),
+      8,
+      120,
+      '让家成为生活的延伸，而不是简单的样板间',
+      JSON.stringify([1, 3]),
+      1
+    );
+    insertDesigner.run(
+      '陈宇航',
+      '资深设计师',
+      '深耕新中式与混搭风格，熟悉本地户型改造要点，从动线、材料到软装提供一站式方案，沟通耐心、落地细致。',
+      '',
+      JSON.stringify(['新中式', '现代简约']),
+      6,
+      85,
+      '传统韵味与现代舒适，可以兼得',
+      JSON.stringify([2]),
+      2
+    );
   }
 
   // Seed default reviews
@@ -237,6 +288,12 @@ function migrateTable() {
   const contactsColumns = db.prepare("PRAGMA table_info(contacts)").all().map(c => c.name);
   if (!contactsColumns.includes('note')) {
     db.exec("ALTER TABLE contacts ADD COLUMN note TEXT");
+  }
+  if (!contactsColumns.includes('designer_id')) {
+    db.exec('ALTER TABLE contacts ADD COLUMN designer_id INTEGER');
+  }
+  if (!contactsColumns.includes('designer_name')) {
+    db.exec('ALTER TABLE contacts ADD COLUMN designer_name TEXT');
   }
 
   // Add columns to materials if missing

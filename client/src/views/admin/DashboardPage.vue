@@ -28,6 +28,7 @@ const navItems = [
   { path: '/admin/material-categories', label: '资料分类', icon: '🏷️', adminOnly: true },
   { path: '/admin/materials', label: '资料库管理', icon: '📚', adminOnly: true },
   { path: '/admin/cases', label: '案例管理', icon: '📁' },
+  { path: '/admin/designers', label: '设计师管理', icon: '🎨' },
   { path: '/admin/capabilities', label: '能力管理', icon: '⚡' },
   { path: '/admin/reviews', label: '评价管理', icon: '💬' },
   { path: '/admin/standards', label: '标准管理', icon: '📋' },

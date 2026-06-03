@@ -6,6 +6,7 @@ const DashboardPage = () => import('../views/admin/DashboardPage.vue')
 const CasesManage = () => import('../views/admin/CasesManage.vue')
 const CapabilitiesManage = () => import('../views/admin/CapabilitiesManage.vue')
 const ReviewsManage = () => import('../views/admin/ReviewsManage.vue')
+const DesignersManage = () => import('../views/admin/DesignersManage.vue')
 const StandardsManage = () => import('../views/admin/StandardsManage.vue')
 const ContactsManage = () => import('../views/admin/ContactsManage.vue')
 const SettingsManage = () => import('../views/admin/SettingsManage.vue')
@@ -30,6 +31,7 @@ const routes = [
     children: [
       { path: '', name: 'Dashboard', component: () => import('../views/admin/DashboardHome.vue') },
       { path: 'cases', name: 'CasesManage', component: CasesManage },
+      { path: 'designers', name: 'DesignersManage', component: DesignersManage },
       { path: 'capabilities', name: 'CapabilitiesManage', component: CapabilitiesManage },
       { path: 'reviews', name: 'ReviewsManage', component: ReviewsManage },
       { path: 'standards', name: 'StandardsManage', component: StandardsManage },

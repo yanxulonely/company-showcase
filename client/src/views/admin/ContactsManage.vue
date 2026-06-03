@@ -106,6 +106,7 @@ onMounted(() => {
             <th>提交时间</th>
             <th>姓名</th>
             <th>手机号</th>
+            <th>意向设计师</th>
             <th>需求描述</th>
             <th>状态</th>
             <th>跟进备注</th>
@@ -117,6 +118,7 @@ onMounted(() => {
             <td class="cell-time">{{ new Date(item.created_at).toLocaleString() }}</td>
             <td class="cell-name">{{ item.name }}</td>
             <td>{{ item.contact_info || '-' }}</td>
+            <td>{{ item.designer_name || '-' }}</td>
             <td class="cell-desc">
               <span :title="item.message">{{ item.message || '-' }}</span>
             </td>

@@ -13,6 +13,7 @@ const isEmployee = computed(() => authStore.isEmployee)
 const navLinks = [
   { label: '首页', href: '#home' },
   { label: '案例', href: '#cases' },
+  { label: '设计师', href: '#designers' },
   { label: '能力', href: '#capabilities' },
   { label: '评价', href: '#reviews' },
   { label: '标准', href: '#standards' },
