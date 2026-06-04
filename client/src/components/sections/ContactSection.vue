@@ -3,6 +3,12 @@ import { ref } from 'vue'
 import { useAppStore } from '../../stores/app'
 import { useContactsStore } from '../../stores/contacts'
 
+const props = defineProps({
+  preferredDesigner: { type: Object, default: null },
+})
+
+const emit = defineEmits(['clear-designer'])
+
 const appStore = useAppStore()
 const contactsStore = useContactsStore()
 
@@ -15,11 +21,17 @@ const budgetOptions = ['5万以内', '5-10万', '10-30万', '30-50万', '50万�
 async function handleSubmit() {
   if (!form.value.name || !form.value.phone) return
   submitting.value = true
-  const res = await contactsStore.submit(form.value)
+  const payload = { ...form.value }
+  if (props.preferredDesigner) {
+    payload.designer_id = props.preferredDesigner.id
+    payload.designer_name = props.preferredDesigner.name
+  }
+  const res = await contactsStore.submit(payload)
   submitting.value = false
   if (res.code === 200) {
     submitted.value = true
     form.value = { name: '', phone: '', address: '', area: '', budget: '' }
+    emit('clear-designer')
     setTimeout(() => { submitted.value = false }, 3000)
   }
 }
@@ -81,6 +93,10 @@ async function handleSubmit() {
           <p>请填写以下信息，我们将尽快与您联系</p>
         </div>
         <div v-if="submitted" class="form-success">✅ 提交成功！我们会尽快与您联系。</div>
+        <div v-if="preferredDesigner" class="designer-pick">
+          <span>已选择意向设计师：<strong>{{ preferredDesigner.name }}</strong></span>
+          <button type="button" class="clear-pick" @click="emit('clear-designer')">取消</button>
+        </div>
         <div class="form-row">
           <div class="form-group">
             <label>姓名 <span class="required">*</span></label>
@@ -366,6 +382,37 @@ async function handleSubmit() {
   color: var(--text-muted);
   font-size: 12px;
   margin-top: 12px;
+}
+
+.designer-pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.designer-pick strong {
+  color: var(--accent-light);
+}
+
+.clear-pick {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+.clear-pick:hover {
+  color: var(--text-primary);
 }
 
 .form-success {
