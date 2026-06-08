@@ -44,7 +44,7 @@ export const useContactsStore = defineStore('contacts', () => {
   async function exportExcel(status) {
     const params = status && status !== 'all' ? `?status=${status}` : ''
     const token = localStorage.getItem('token')
-    const response = await fetch(`http://localhost:3000/api/contacts/export${params}`, {
+    const response = await fetch(`/api/contacts/export${params}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!response.ok) throw new Error('导出失败')
