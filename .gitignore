@@ -5,3 +5,6 @@ dist/
 *.db-wal
 .env
 .DS_Store
+deploy/.ssh/
+*.pem
+*.key

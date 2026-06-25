@@ -11,10 +11,11 @@
 ## 一键部署（在本机 Mac 项目根目录）
 
 ```bash
-./deploy/deploy-remote.sh root@106.54.246.16
+chmod 600 deploy/.ssh/company.pem
+SSH_IDENTITY=deploy/.ssh/company.pem ./deploy/deploy-remote.sh ubuntu@106.54.246.16
 ```
 
-按提示输入 root 密码。脚本会自动：
+> 腾讯云 Ubuntu 镜像默认用户是 **ubuntu**（不是 root），密钥文件名以你本地的为准（如 `company.pem`）。
 
 - 打包上传代码到 `/opt/company-showcase`
 - 安装 Nginx、PM2、编译 better-sqlite3

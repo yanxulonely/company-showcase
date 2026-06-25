@@ -62,6 +62,8 @@ npm run build
 echo "==> 准备数据目录"
 mkdir -p "${APP_DIR}/server/uploads"
 chmod 755 "${APP_DIR}/server/uploads"
+chmod 755 /opt "${APP_DIR}" "${APP_DIR}/client" "${APP_DIR}/client/dist" 2>/dev/null || true
+chmod -R a+rX "${APP_DIR}/client/dist"
 
 echo "==> 写入生产环境配置"
 if [[ ! -f "${ENV_FILE}" ]]; then
@@ -83,7 +85,7 @@ cd "${APP_DIR}/server"
 pm2 delete company-api 2>/dev/null || true
 pm2 start "${APP_DIR}/deploy/ecosystem.config.js"
 pm2 save
-pm2 startup systemd -u root --hp /root 2>/dev/null | tail -1 | bash || true
+pm2 startup systemd -u root --hp /root 2>/dev/null | grep -E '^sudo' | bash || true
 
 echo "==> 配置 Nginx"
 if [[ "${SERVER_NAME}" == "_" || -z "${SERVER_NAME}" ]]; then
