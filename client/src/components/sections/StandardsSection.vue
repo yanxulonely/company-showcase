@@ -139,4 +139,28 @@ onMounted(() => {
   font-size: 12px;
   flex-shrink: 0;
 }
+
+@media (max-width: 768px) {
+  .section {
+    padding: 72px 16px;
+  }
+
+  .standards-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .standard-card {
+    padding: 24px 20px;
+  }
+
+  .standard-title {
+    font-size: 18px;
+  }
+
+  .standard-list li {
+    font-size: 14px;
+    padding: 12px 0;
+  }
+}
 </style>

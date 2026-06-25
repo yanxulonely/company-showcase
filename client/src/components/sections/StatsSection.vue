@@ -89,4 +89,29 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+@media (max-width: 768px) {
+  .stats {
+    padding: 48px 16px;
+  }
+
+  .stats-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .stat-item {
+    padding: 12px 8px;
+  }
+
+  .stat-number {
+    font-size: 36px;
+    letter-spacing: -1px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+}
 </style>

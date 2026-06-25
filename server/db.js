@@ -1,151 +1,220 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+require('dotenv').config();
+
+const mysql = require('mysql2/promise');
+const deasync = require('deasync');
 const bcrypt = require('bcryptjs');
 const { seedDefaultMaterials, syncPptPdfPreviews } = require('./seedMaterials');
-const dbPath = path.join(__dirname, 'data.db');
-const db = new Database(dbPath);
 
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+let pool;
 
-function initDatabase() {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      role TEXT DEFAULT 'user',
-      display_name TEXT,
-      phone TEXT,
-      is_active INTEGER DEFAULT 1,
+function awaitSync(promise) {
+  let done = false;
+  let result;
+  let error;
+  promise.then((r) => { result = r; done = true; }).catch((e) => { error = e; done = true; });
+  deasync.loopWhile(() => !done);
+  if (error) throw error;
+  return result;
+}
+
+function normalizeRow(row) {
+  if (!row) return row;
+  const out = {};
+  for (const [k, v] of Object.entries(row)) {
+    out[k] = typeof v === 'bigint' ? Number(v) : v;
+  }
+  return out;
+}
+
+function normalizeRows(rows) {
+  return rows.map(normalizeRow);
+}
+
+function prepare(sql) {
+  return {
+    get(...params) {
+      const [rows] = awaitSync(pool.execute(sql, params));
+      return normalizeRow(rows[0]);
+    },
+    all(...params) {
+      const [rows] = awaitSync(pool.execute(sql, params));
+      return normalizeRows(rows);
+    },
+    run(...params) {
+      const [result] = awaitSync(pool.execute(sql, params));
+      return {
+        lastInsertRowid: Number(result.insertId),
+        changes: result.affectedRows
+      };
+    }
+  };
+}
+
+const db = {
+  prepare,
+  exec(sql) {
+    awaitSync(pool.query(sql));
+  }
+};
+
+function createPool() {
+  pool = mysql.createPool({
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER || 'showcase',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'company_showcase',
+    waitForConnections: true,
+    connectionLimit: 10,
+    charset: 'utf8mb4'
+  });
+}
+
+function createTables() {
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'user',
+      display_name VARCHAR(255),
+      phone VARCHAR(50),
+      is_active TINYINT DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS settings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      key TEXT UNIQUE NOT NULL,
+    `CREATE TABLE IF NOT EXISTS settings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      \`key\` VARCHAR(255) UNIQUE NOT NULL,
       value TEXT,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS cases (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
+    `CREATE TABLE IF NOT EXISTS cases (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
       description TEXT,
-      tag TEXT,
-      icon TEXT,
+      tag VARCHAR(100),
+      icon VARCHAR(50),
       image_url TEXT,
       external_url TEXT,
-      sort_order INTEGER DEFAULT 0,
+      sort_order INT DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS capabilities (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
+    `CREATE TABLE IF NOT EXISTS capabilities (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
       description TEXT,
-      icon TEXT,
-      sort_order INTEGER DEFAULT 0,
+      icon VARCHAR(50),
+      sort_order INT DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS reviews (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      company TEXT,
+    `CREATE TABLE IF NOT EXISTS reviews (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      company VARCHAR(255),
       content TEXT,
-      rating INTEGER DEFAULT 5,
-      avatar_bg INTEGER DEFAULT 1,
-      sort_order INTEGER DEFAULT 0,
+      rating INT DEFAULT 5,
+      avatar_bg INT DEFAULT 1,
+      sort_order INT DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS standards (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      type TEXT NOT NULL DEFAULT 'execution',
+    `CREATE TABLE IF NOT EXISTS standards (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      type VARCHAR(50) NOT NULL DEFAULT 'execution',
       items TEXT,
-      sort_order INTEGER DEFAULT 0,
+      sort_order INT DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS contacts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      company TEXT,
+    `CREATE TABLE IF NOT EXISTS contacts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      company VARCHAR(255),
       contact_info TEXT,
       message TEXT,
-      status TEXT DEFAULT 'pending',
+      status VARCHAR(50) DEFAULT 'pending',
       note TEXT,
+      designer_id INT,
+      designer_name VARCHAR(255),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS banners (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT,
-      subtitle TEXT,
+    `CREATE TABLE IF NOT EXISTS banners (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255),
+      subtitle VARCHAR(255),
       image_url TEXT,
-      sort_order INTEGER DEFAULT 0,
-      is_active INTEGER DEFAULT 1,
+      sort_order INT DEFAULT 0,
+      is_active TINYINT DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS material_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      sort_order INTEGER DEFAULT 0,
+    `CREATE TABLE IF NOT EXISTS material_categories (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      sort_order INT DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS materials (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      category_id INTEGER,
+    `CREATE TABLE IF NOT EXISTS materials (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      category_id INT,
       tags TEXT,
       file_url TEXT,
-      file_type TEXT,
-      original_filename TEXT,
-      is_pinned INTEGER DEFAULT 0,
-      visibility TEXT DEFAULT 'employee',
-      sort_order INTEGER DEFAULT 0,
+      file_type VARCHAR(50),
+      original_filename VARCHAR(255),
+      pdf_url TEXT,
+      pdf_filename VARCHAR(255),
+      is_pinned TINYINT DEFAULT 0,
+      visibility VARCHAR(50) DEFAULT 'employee',
+      sort_order INT DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (category_id) REFERENCES material_categories(id)
-    );
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS designers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      title TEXT,
+    `CREATE TABLE IF NOT EXISTS designers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      title VARCHAR(255),
       bio TEXT,
       photo_url TEXT,
       styles TEXT,
-      years_experience INTEGER DEFAULT 0,
-      project_count INTEGER DEFAULT 0,
+      years_experience INT DEFAULT 0,
+      project_count INT DEFAULT 0,
       slogan TEXT,
       featured_case_ids TEXT,
-      sort_order INTEGER DEFAULT 0,
-      is_active INTEGER DEFAULT 1,
+      sort_order INT DEFAULT 0,
+      is_active TINYINT DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+  ];
 
-  // Migrate existing tables: add new columns if missing
-  migrateTable();
+  for (const sql of statements) {
+    db.exec(sql);
+  }
+}
 
-  // Seed default admin
+function initDatabase() {
+  createPool();
+  createTables();
+
   const admin = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
   if (!admin) {
     const hash = bcrypt.hashSync('admin123', 10);
     db.prepare('INSERT INTO users (username, password, role, display_name) VALUES (?, ?, ?, ?)').run('admin', hash, 'admin', '管理员');
   } else {
-    // Ensure existing admin has role = 'admin'
     db.prepare("UPDATE users SET role = 'admin', display_name = COALESCE(display_name, '管理员') WHERE username = 'admin'").run();
   }
 
-  // Seed default settings
-  const settingsCount = db.prepare('SELECT COUNT(*) as count FROM settings').get().count;
+  const settingsCount = Number(db.prepare('SELECT COUNT(*) as count FROM settings').get().count);
   if (settingsCount === 0) {
-    const insertSetting = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)');
+    const insertSetting = db.prepare('INSERT INTO settings (`key`, value) VALUES (?, ?)');
     insertSetting.run('company_name', '尚润装饰');
     insertSetting.run('company_slogan', '专注品质装修，为您打造理想家园');
     insertSetting.run('hero_title', '用心装修每一个家<br><span class=\'gradient-text\'>尚润装饰 值得信赖</span>');
@@ -157,8 +226,7 @@ function initDatabase() {
     insertSetting.run('slogan', '专注品质装修，值得信赖');
   }
 
-  // Seed default cases
-  const casesCount = db.prepare('SELECT COUNT(*) as count FROM cases').get().count;
+  const casesCount = Number(db.prepare('SELECT COUNT(*) as count FROM cases').get().count);
   if (casesCount === 0) {
     const insertCase = db.prepare('INSERT INTO cases (title, description, tag, icon, sort_order) VALUES (?, ?, ?, ?, ?)');
     insertCase.run('现代简约 · 三室两厅', '120㎡现代简约风格，整体以白色和原木色为主调，简洁大方，适合年轻家庭。', '现代简约', '🏠', 1);
@@ -166,8 +234,7 @@ function initDatabase() {
     insertCase.run('轻奢风格 · 复式', '200㎡轻奢风格复式楼，金属质感与大理石搭配，品质生活从家开始。', '轻奢', '🏢', 3);
   }
 
-  // Seed default capabilities
-  const capsCount = db.prepare('SELECT COUNT(*) as count FROM capabilities').get().count;
+  const capsCount = Number(db.prepare('SELECT COUNT(*) as count FROM capabilities').get().count);
   if (capsCount === 0) {
     const insertCap = db.prepare('INSERT INTO capabilities (title, description, icon, sort_order) VALUES (?, ?, ?, ?)');
     insertCap.run('室内设计', '专业设计团队，量身定制装修方案，从现代简约到新中式，满足您的个性化需求。', '🎨', 1);
@@ -178,8 +245,7 @@ function initDatabase() {
     insertCap.run('售后保障', '隐蔽工程5年质保，整体工程2年质保，24小时响应售后问题。', '🛡️', 6);
   }
 
-  // Seed default designers
-  const designersCount = db.prepare('SELECT COUNT(*) as count FROM designers').get().count;
+  const designersCount = Number(db.prepare('SELECT COUNT(*) as count FROM designers').get().count);
   if (designersCount === 0) {
     const insertDesigner = db.prepare(`
       INSERT INTO designers (
@@ -188,33 +254,20 @@ function initDatabase() {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `);
     insertDesigner.run(
-      '林晓雯',
-      '首席设计师',
+      '林晓雯', '首席设计师',
       '国家注册室内设计师，擅长现代简约与轻奢风格，注重空间采光与收纳规划，善于在有限面积内实现功能与美感平衡。',
-      '',
-      JSON.stringify(['现代简约', '轻奢']),
-      8,
-      120,
-      '让家成为生活的延伸，而不是简单的样板间',
-      JSON.stringify([1, 3]),
-      1
+      '', JSON.stringify(['现代简约', '轻奢']), 8, 120,
+      '让家成为生活的延伸，而不是简单的样板间', JSON.stringify([1, 3]), 1
     );
     insertDesigner.run(
-      '陈宇航',
-      '资深设计师',
+      '陈宇航', '资深设计师',
       '深耕新中式与混搭风格，熟悉本地户型改造要点，从动线、材料到软装提供一站式方案，沟通耐心、落地细致。',
-      '',
-      JSON.stringify(['新中式', '现代简约']),
-      6,
-      85,
-      '传统韵味与现代舒适，可以兼得',
-      JSON.stringify([2]),
-      2
+      '', JSON.stringify(['新中式', '现代简约']), 6, 85,
+      '传统韵味与现代舒适，可以兼得', JSON.stringify([2]), 2
     );
   }
 
-  // Seed default reviews
-  const reviewsCount = db.prepare('SELECT COUNT(*) as count FROM reviews').get().count;
+  const reviewsCount = Number(db.prepare('SELECT COUNT(*) as count FROM reviews').get().count);
   if (reviewsCount === 0) {
     const insertReview = db.prepare('INSERT INTO reviews (name, company, content, rating, avatar_bg, sort_order) VALUES (?, ?, ?, ?, ?, ?)');
     insertReview.run('张先生', '明昊嘉苑业主', '尚润装饰的施工非常规范，材料都是正品，设计师也很耐心地帮我调整方案，最终效果超出预期！', 5, 1, 1);
@@ -222,8 +275,7 @@ function initDatabase() {
     insertReview.run('王先生', '东方家园业主', '报价透明，没有隐藏费用，施工质量很好，特别是水电改造做得很专业。', 5, 3, 3);
   }
 
-  // Seed default standards
-  const stdCount = db.prepare('SELECT COUNT(*) as count FROM standards').get().count;
+  const stdCount = Number(db.prepare('SELECT COUNT(*) as count FROM standards').get().count);
   if (stdCount === 0) {
     const insertStd = db.prepare('INSERT INTO standards (title, type, items, sort_order) VALUES (?, ?, ?, ?)');
     insertStd.run('施工标准', 'execution', JSON.stringify([
@@ -240,16 +292,14 @@ function initDatabase() {
     ]), 2);
   }
 
-  // Seed default banners
-  const bannersCount = db.prepare('SELECT COUNT(*) as count FROM banners').get().count;
+  const bannersCount = Number(db.prepare('SELECT COUNT(*) as count FROM banners').get().count);
   if (bannersCount === 0) {
     const insertBanner = db.prepare('INSERT INTO banners (title, subtitle, image_url, sort_order) VALUES (?, ?, ?, ?)');
-    insertBanner.run('用心装修每一个家', '尚润装饰，品质生活从家开始', '/uploads/default-banner-1.jpg', 1);
-    insertBanner.run('精工细作 品质保障', '自有施工团队，严格施工标准，让您装修更放心', '/uploads/default-banner-2.jpg', 2);
+    insertBanner.run('用心装修每一个家', '尚润装饰，品质生活从家开始', '', 1);
+    insertBanner.run('精工细作 品质保障', '自有施工团队，严格施工标准，让您装修更放心', '', 2);
   }
 
-  // Seed default material categories
-  const catCount = db.prepare('SELECT COUNT(*) as count FROM material_categories').get().count;
+  const catCount = Number(db.prepare('SELECT COUNT(*) as count FROM material_categories').get().count);
   if (catCount === 0) {
     const insertCat = db.prepare('INSERT INTO material_categories (name, sort_order) VALUES (?, ?)');
     insertCat.run('装修材料清单', 1);
@@ -258,52 +308,8 @@ function initDatabase() {
     insertCat.run('培训课件与话术', 4);
   }
 
-  // Seed materials from server/seed-materials/ (files + manifest.json)
   seedDefaultMaterials(db);
   syncPptPdfPreviews(db);
-}
-function migrateTable() {
-  // Add columns to users if missing
-  const userColumns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
-  if (!userColumns.includes('role')) {
-    db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
-  }
-  if (!userColumns.includes('display_name')) {
-    db.exec("ALTER TABLE users ADD COLUMN display_name TEXT");
-  }
-  if (!userColumns.includes('phone')) {
-    db.exec("ALTER TABLE users ADD COLUMN phone TEXT");
-  }
-  if (!userColumns.includes('is_active')) {
-    db.exec("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1");
-  }
-
-  // Add columns to cases if missing
-  const casesColumns = db.prepare("PRAGMA table_info(cases)").all().map(c => c.name);
-  if (!casesColumns.includes('external_url')) {
-    db.exec("ALTER TABLE cases ADD COLUMN external_url TEXT");
-  }
-
-  // Add columns to contacts if missing
-  const contactsColumns = db.prepare("PRAGMA table_info(contacts)").all().map(c => c.name);
-  if (!contactsColumns.includes('note')) {
-    db.exec("ALTER TABLE contacts ADD COLUMN note TEXT");
-  }
-  if (!contactsColumns.includes('designer_id')) {
-    db.exec('ALTER TABLE contacts ADD COLUMN designer_id INTEGER');
-  }
-  if (!contactsColumns.includes('designer_name')) {
-    db.exec('ALTER TABLE contacts ADD COLUMN designer_name TEXT');
-  }
-
-  // Add columns to materials if missing
-  const materialsColumns = db.prepare("PRAGMA table_info(materials)").all().map(c => c.name);
-  if (!materialsColumns.includes('pdf_url')) {
-    db.exec("ALTER TABLE materials ADD COLUMN pdf_url TEXT");
-  }
-  if (!materialsColumns.includes('pdf_filename')) {
-    db.exec("ALTER TABLE materials ADD COLUMN pdf_filename TEXT");
-  }
 }
 
 module.exports = { db, initDatabase };

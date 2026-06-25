@@ -274,11 +274,15 @@ onMounted(async () => {
   }
 
   .section {
-    padding: 80px 24px;
+    padding: 72px 16px;
   }
 
   .section-header h2 {
-    font-size: 36px;
+    font-size: 28px;
+  }
+
+  .designer-card {
+    padding: 20px;
   }
 }
 </style>

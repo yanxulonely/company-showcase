@@ -164,4 +164,33 @@ onMounted(async () => {
   font-size: 13px;
   color: var(--text-muted);
 }
+
+@media (max-width: 768px) {
+  .section {
+    padding: 72px 16px;
+  }
+
+  .section-header {
+    margin-bottom: 32px;
+  }
+
+  .section-header h2 {
+    font-size: 28px;
+  }
+
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .review-card {
+    padding: 24px 20px;
+  }
+
+  .review-card::before {
+    font-size: 56px;
+    top: 12px;
+    right: 16px;
+  }
+}
 </style>

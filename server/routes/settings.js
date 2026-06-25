@@ -16,14 +16,11 @@ router.get('/', (req, res) => {
 router.put('/', authMiddleware, (req, res) => {
   const settings = req.body;
   const upsert = db.prepare(
-    'INSERT INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP'
+    'INSERT INTO settings (`key`, value, updated_at) VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = NOW()'
   );
-  const updateMany = db.transaction((entries) => {
-    for (const [key, value] of entries) {
-      upsert.run(key, value);
-    }
-  });
-  updateMany(Object.entries(settings));
+  for (const [key, value] of Object.entries(settings)) {
+    upsert.run(key, value);
+  }
   res.json({ code: 200, message: 'success', data: null });
 });
 

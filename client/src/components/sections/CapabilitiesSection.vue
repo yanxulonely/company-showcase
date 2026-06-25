@@ -161,4 +161,38 @@ onMounted(async () => {
   opacity: 1;
   transform: translateX(0);
 }
+
+@media (max-width: 768px) {
+  .section {
+    padding: 72px 16px;
+  }
+
+  .section-header {
+    margin-bottom: 32px;
+  }
+
+  .section-header h2 {
+    font-size: 28px;
+  }
+
+  .capabilities-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .capability-card {
+    padding: 24px 20px;
+  }
+
+  .capability-tag {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .capabilities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 </style>

@@ -8,10 +8,10 @@ ENV_FILE="${APP_DIR}/server/.env"
 echo "==> 安装系统依赖"
 if command -v apt-get >/dev/null 2>&1; then
   apt-get update -qq
-  apt-get install -y -qq nginx sqlite3 curl ca-certificates \
+  apt-get install -y -qq nginx mysql-server curl ca-certificates \
     build-essential python3 git
 elif command -v yum >/dev/null 2>&1; then
-  yum install -y nginx sqlite curl ca-certificates git \
+  yum install -y nginx mysql-server curl ca-certificates git \
     gcc-c++ make python3
   systemctl enable nginx 2>/dev/null || true
 else
@@ -50,7 +50,19 @@ fi
 echo "==> 部署应用目录: ${APP_DIR}"
 mkdir -p "${APP_DIR}"
 
-echo "==> 安装后端依赖（含 better-sqlite3 编译）"
+echo "==> 配置 MySQL"
+DB_NAME="${DB_NAME:-company_showcase}"
+DB_USER="${DB_USER:-showcase}"
+DB_PASS="${DB_PASSWORD:-$(openssl rand -hex 16)}"
+
+mysql <<EOSQL
+CREATE DATABASE IF NOT EXISTS ${DB_NAME} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
+GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
+FLUSH PRIVILEGES;
+EOSQL
+
+echo "==> 安装后端依赖"
 cd "${APP_DIR}/server"
 npm install
 
@@ -72,12 +84,25 @@ if [[ ! -f "${ENV_FILE}" ]]; then
 PORT=3000
 NODE_ENV=production
 JWT_SECRET=${JWT_SECRET}
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=${DB_USER}
+DB_PASSWORD=${DB_PASS}
+DB_NAME=${DB_NAME}
 EOF
   chmod 600 "${ENV_FILE}"
   echo "已创建 ${ENV_FILE}"
   echo "JWT_SECRET=${JWT_SECRET}"
+  echo "DB_PASSWORD=${DB_PASS}"
 else
-  echo "保留已有 ${ENV_FILE}"
+  echo "保留已有 ${ENV_FILE}，补充 MySQL 配置（若缺失）"
+  grep -q '^DB_HOST=' "${ENV_FILE}" || cat >> "${ENV_FILE}" <<EOF
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=${DB_USER}
+DB_PASSWORD=${DB_PASS}
+DB_NAME=${DB_NAME}
+EOF
 fi
 
 echo "==> 配置 PM2"

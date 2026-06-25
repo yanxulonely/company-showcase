@@ -203,13 +203,14 @@ onUnmounted(() => {
 }
 
 .hero h1 {
-  font-size: 80px;
+  font-size: clamp(28px, 8vw, 80px);
   font-weight: 800;
-  line-height: 1.05;
+  line-height: 1.1;
   letter-spacing: -3px;
   margin-bottom: 28px;
   max-width: 900px;
   animation: fadeInUp 0.8s ease 0.1s backwards;
+  word-break: break-word;
 }
 
 :deep(.gradient-text) {
@@ -352,22 +353,37 @@ onUnmounted(() => {
 /* Responsive */
 @media (max-width: 768px) {
   .hero {
-    padding: 120px 20px 60px;
+    min-height: auto;
+    padding: 96px 16px 48px;
+    align-items: flex-end;
+  }
+
+  .hero-glow {
+    width: 100%;
+    height: 320px;
   }
 
   .hero h1 {
-    font-size: 36px;
     letter-spacing: -1px;
+    margin-bottom: 16px;
   }
 
   .hero-desc {
     font-size: 15px;
     max-width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .hero-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+    margin-bottom: 20px;
   }
 
   .hero-buttons {
     flex-direction: column;
     gap: 12px;
+    width: 100%;
   }
 
   .hero-buttons .btn-primary,
@@ -375,10 +391,12 @@ onUnmounted(() => {
     text-align: center;
     padding: 14px 24px;
     font-size: 14px;
+    width: 100%;
   }
 
   .carousel-controls {
-    margin-top: 32px;
+    margin-top: 24px;
+    justify-content: center;
   }
 
   .carousel-btn {

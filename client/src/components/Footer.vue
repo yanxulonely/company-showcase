@@ -111,4 +111,22 @@ const appStore = useAppStore()
   color: var(--text-muted);
   font-size: 13px;
 }
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 48px 16px 32px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    margin-top: 24px;
+  }
+}
 </style>

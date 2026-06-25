@@ -31,8 +31,8 @@ function clearPreferredDesigner() {
 
 <template>
   <PageLoader />
-  <CursorGlow />
-  <FloatingShapes />
+  <CursorGlow class="hide-mobile" />
+  <FloatingShapes class="hide-mobile" />
   <Navbar />
   <main>
     <HeroSection />
@@ -50,3 +50,11 @@ function clearPreferredDesigner() {
   <Footer />
   <BackToTop />
 </template>
+
+<style scoped>
+@media (max-width: 768px) {
+  :deep(.hide-mobile) {
+    display: none !important;
+  }
+}
+</style>
