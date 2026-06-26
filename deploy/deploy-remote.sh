@@ -20,6 +20,7 @@ tar czf "${TMP_TAR}" \
   --exclude='*.db-shm' \
   --exclude='*.db-wal' \
   --exclude='.git' \
+  --exclude='server/uploads' \
   -C "${ROOT_DIR}" .
 
 echo "==> 上传到 ${TARGET}"
@@ -38,6 +39,18 @@ sudo tar xzf /tmp/showcase.tar.gz -C "${APP_DIR}"
 rm -f /tmp/showcase.tar.gz
 sudo chmod +x "${APP_DIR}/deploy/install.sh"
 sudo bash "${APP_DIR}/deploy/install.sh" "${SERVER_IP}"
+REMOTE
+
+echo "==> 同步种子图片到 COS uploads"
+ssh "${SSH_OPTS[@]}" "${TARGET}" "mkdir -p /tmp/showcase-seed"
+scp -r "${SSH_OPTS[@]}" "${ROOT_DIR}/server/uploads/seed/"* "${TARGET}:/tmp/showcase-seed/"
+ssh "${SSH_OPTS[@]}" "${TARGET}" bash -s "${APP_DIR}" <<'REMOTE'
+set -euo pipefail
+APP_DIR="$1"
+sudo mkdir -p "${APP_DIR}/server/uploads/seed"
+sudo cp -r /tmp/showcase-seed/* "${APP_DIR}/server/uploads/seed/"
+rm -rf /tmp/showcase-seed
+cd "${APP_DIR}/server" && node scripts/applySeedImages.js || true
 REMOTE
 
 echo ""

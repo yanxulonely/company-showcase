@@ -73,7 +73,7 @@ npm run build
 
 echo "==> 准备数据目录"
 mkdir -p "${APP_DIR}/server/uploads"
-chmod 755 "${APP_DIR}/server/uploads"
+chmod 755 "${APP_DIR}/server/uploads" 2>/dev/null || true
 chmod 755 /opt "${APP_DIR}" "${APP_DIR}/client" "${APP_DIR}/client/dist" 2>/dev/null || true
 chmod -R a+rX "${APP_DIR}/client/dist"
 

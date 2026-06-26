@@ -12,7 +12,8 @@ if (!fs.existsSync(seedDir)) {
   process.exit(1);
 }
 
-const { db } = require('../db');
+const { db, initDatabase } = require('../db');
+initDatabase();
 
 function upsertSetting(key, value) {
   const existing = db.prepare('SELECT value FROM settings WHERE `key` = ?').get(key);
