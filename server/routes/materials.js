@@ -4,7 +4,7 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 const { db } = require('../db');
 const { authMiddleware, requireRole } = require('../middleware/auth');
-const { createUploader, finalizeUpload, UPLOADS_DIR } = require('../lib/uploadStorage');
+const { createUploader, persistUpload, UPLOADS_DIR } = require('../lib/uploadStorage');
 
 const router = express.Router();
 
@@ -156,14 +156,24 @@ router.put('/:id/pin', authMiddleware, requireRole('admin'), (req, res) => {
   res.json({ code: 200, message: 'success', data: updated });
 });
 
-// POST /api/materials/upload - 上传文件
-router.post('/upload', authMiddleware, requireRole('admin'), upload.single('file'), (req, res) => {
+// POST /api/materials/upload - 上传文件（先 multer 再 auth，避免 deasync 阻塞导致大文件失败）
+router.post('/upload', (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      const message = err.code === 'LIMIT_FILE_SIZE'
+        ? '文件过大，最大 50MB'
+        : (err.message || '上传失败');
+      return res.json({ code: 400, message, data: null });
+    }
+    next();
+  });
+}, authMiddleware, requireRole('admin'), (req, res) => {
   if (!req.file) {
     return res.json({ code: 400, message: '请选择文件', data: null });
   }
   let saved;
   try {
-    saved = finalizeUpload(req.file.filename);
+    saved = persistUpload(req.file, upload.filenamePrefix);
   } catch (e) {
     console.error('Material upload finalize failed:', e);
     return res.json({ code: 500, message: '保存文件失败', data: null });

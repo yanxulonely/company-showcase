@@ -8,7 +8,7 @@ const TEMP_DIR = path.join(os.tmpdir(), 'company-showcase-uploads');
 
 for (const dir of [UPLOADS_DIR, TEMP_DIR]) {
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+    fs.mkdirSync(dir, { recursive: true, mode: 0o1777 });
   }
 }
 
@@ -24,18 +24,15 @@ function createUploader(options = {}) {
     fileFilter,
   } = options;
 
-  const storage = multer.diskStorage({
-    destination: TEMP_DIR,
-    filename: (req, file, cb) => {
-      cb(null, buildFilename(filenamePrefix, file.originalname));
-    },
-  });
-
-  return multer({
-    storage,
+  const upload = multer({
+    // 避免 diskStorage 流式写入在 cosfs 环境触发 64KB 限制
+    storage: multer.memoryStorage(),
     limits: { fileSize: fileSizeLimit },
     fileFilter,
   });
+
+  upload.filenamePrefix = filenamePrefix;
+  return upload;
 }
 
 /** cosfs 单次写入 >64KB 会失败，必须先落本地临时目录再复制到 uploads */
@@ -54,9 +51,21 @@ function finalizeUpload(tempFilename) {
   };
 }
 
+/** 将 multer memoryStorage 收到的文件写入本地临时目录并复制到 uploads */
+function persistUpload(file, filenamePrefix = '') {
+  if (!file?.buffer?.length) {
+    throw new Error('未收到文件数据');
+  }
+  const filename = buildFilename(filenamePrefix, file.originalname);
+  const tempPath = path.join(TEMP_DIR, filename);
+  fs.writeFileSync(tempPath, file.buffer);
+  return finalizeUpload(filename);
+}
+
 module.exports = {
   UPLOADS_DIR,
   TEMP_DIR,
   createUploader,
   finalizeUpload,
+  persistUpload,
 };

@@ -87,9 +87,8 @@ export const useMaterialsStore = defineStore('materials', () => {
   }
 
   async function upload(file) {
-    const formData = new FormData()
-    formData.append('file', file)
-    return request.post('/materials/upload', formData)
+    const { uploadMaterialFile } = await import('../utils/upload')
+    return uploadMaterialFile(file)
   }
 
   return {

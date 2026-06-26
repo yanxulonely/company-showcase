@@ -78,6 +78,11 @@ async function handleQrUpload(e) {
           <input v-model="form.business_hours" placeholder="如：周一至周五 9:00 - 18:00">
         </div>
         <div class="form-group">
+          <label>官网二维码（扫码访问网站）</label>
+          <input v-model="form.site_qr_url" placeholder="/uploads/seed/site-qr.png">
+          <img v-if="form.site_qr_url" :src="form.site_qr_url" class="preview-qr" alt="官网二维码" style="margin-top: 8px;">
+        </div>
+        <div class="form-group">
           <label>微信二维码</label>
           <div class="upload-area">
             <input type="file" accept="image/*" @change="handleQrUpload" style="display: none;" id="wechat-qr-upload">

@@ -74,14 +74,14 @@ async function handleSubmit() {
             </div>
           </li>
         </ul>
-        <!-- 微信二维码 -->
+        <!-- 官网二维码 -->
         <div class="wechat-section">
-          <div class="wechat-label">微信扫码咨询</div>
+          <div class="wechat-label">扫码访问官网</div>
           <div class="wechat-qr">
-            <img v-if="appStore.settings.wechat_qr_url" :src="appStore.settings.wechat_qr_url" alt="微信二维码" class="qr-image">
+            <img v-if="appStore.settings.site_qr_url || appStore.settings.wechat_qr_url" :src="appStore.settings.site_qr_url || appStore.settings.wechat_qr_url" alt="官网二维码" class="qr-image">
             <div v-else class="qr-placeholder">
               <span>📱</span>
-              <span class="qr-text">请在后台上传微信二维码</span>
+              <span class="qr-text">请在后台配置官网二维码</span>
             </div>
           </div>
         </div>

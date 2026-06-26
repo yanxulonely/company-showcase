@@ -224,6 +224,7 @@ function initDatabase() {
     insertSetting.run('contact_email', '请在后台设置联系邮箱');
     insertSetting.run('business_hours', '周一至周五 9:00 - 18:00');
     insertSetting.run('wechat_qr_url', '/uploads/seed/wechat-qr-placeholder.svg');
+    insertSetting.run('site_qr_url', '/uploads/seed/site-qr.png');
     insertSetting.run('footer_text', '© 2026 尚润装饰. All rights reserved.');
     insertSetting.run('slogan', '专注品质装修，值得信赖');
   }
