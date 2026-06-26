@@ -17,7 +17,10 @@ async function handleLogin() {
   loading.value = false
   if (res.code === 200) {
     const role = res.data.role
-    if (role === 'admin') {
+    const redirect = router.currentRoute.value.query.redirect
+    if (typeof redirect === 'string' && redirect.startsWith('/')) {
+      router.push(redirect)
+    } else if (role === 'admin') {
       router.push('/admin')
     } else if (role === 'employee') {
       router.push('/employee')

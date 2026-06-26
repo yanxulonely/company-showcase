@@ -65,7 +65,7 @@ const navItems = [
         </router-link>
       </nav>
       <div class="sidebar-footer">
-        <a href="/" class="sidebar-link">🌐 返回首页</a>
+        <a href="#/" class="sidebar-link">🌐 返回首页</a>
         <button @click="logout" class="sidebar-link logout-btn">🚪 退出登录</button>
       </div>
     </aside>

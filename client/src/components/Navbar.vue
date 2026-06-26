@@ -9,7 +9,6 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const menuOpen = ref(false)
 
-const isLoggedIn = computed(() => authStore.isLoggedIn)
 const isEmployee = computed(() => authStore.isEmployee)
 
 const navLinks = [
@@ -54,11 +53,21 @@ function closeMenu() {
             {{ link.label }}
           </a>
           <a href="#contact" class="nav-cta" @click.prevent="scrollTo('#contact')">联系我们</a>
-          <router-link v-if="isEmployee" to="/employee" class="nav-employee" @click="closeMenu">
+          <router-link
+            v-if="isEmployee"
+            to="/employee"
+            class="nav-employee"
+            @click="closeMenu"
+          >
             👤 员工入口
           </router-link>
-          <router-link v-else-if="!isLoggedIn" to="/admin/login" class="nav-login-link" @click="closeMenu">
-            🔑 登录
+          <router-link
+            v-else
+            to="/admin/login"
+            class="nav-employee"
+            @click="closeMenu"
+          >
+            👤 员工入口
           </router-link>
         </div>
         <ThemeToggle />

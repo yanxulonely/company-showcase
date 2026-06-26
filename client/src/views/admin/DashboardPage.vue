@@ -59,7 +59,8 @@ const navItems = [
         </router-link>
       </nav>
       <div class="sidebar-footer">
-        <a href="/" target="_blank" class="sidebar-link">🌐 查看前台</a>
+        <router-link to="/employee" class="sidebar-link" @click="closeSidebar">👤 员工资料库</router-link>
+        <router-link to="/" class="sidebar-link" @click="closeSidebar">🌐 查看前台</router-link>
         <button @click="logout" class="sidebar-link logout">🚪 退出登录</button>
       </div>
     </aside>

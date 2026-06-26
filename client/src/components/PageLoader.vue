@@ -29,6 +29,7 @@ onMounted(() => {
 .page-loader.hidden {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 
 .loader-spinner {

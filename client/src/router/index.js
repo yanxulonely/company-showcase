@@ -64,30 +64,29 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth) {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      next({ name: 'Login' })
-    } else if (to.meta.requiresAdmin) {
-      const role = localStorage.getItem('role')
-      if (role !== 'admin') {
-        next({ name: 'Dashboard' })
-      } else {
-        next()
-      }
-    } else if (to.meta.requiresEmployee) {
-      const role = localStorage.getItem('role')
-      if (role !== 'admin' && role !== 'employee') {
-        next({ name: 'Home' })
-      } else {
-        next()
-      }
-    } else {
-      next()
-    }
-  } else {
-    next()
+  const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
+
+  if (to.meta.requiresAuth && !token) {
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+    return
   }
+
+  if (to.meta.requiresAdmin && role !== 'admin') {
+    if (role === 'employee') {
+      next({ name: 'EmployeeHome' })
+    } else {
+      next({ name: 'Home' })
+    }
+    return
+  }
+
+  if (to.meta.requiresEmployee && role !== 'admin' && role !== 'employee') {
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+    return
+  }
+
+  next()
 })
 
 export default router
