@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAppStore } from '../../stores/app'
+import request from '../../utils/request'
 
 const appStore = useAppStore()
 const form = ref({})
 const saved = ref(false)
+const uploadingQr = ref(false)
 
 onMounted(() => {
   form.value = { ...appStore.settings }
@@ -14,6 +16,24 @@ async function handleSave() {
   await appStore.updateSettings(form.value)
   saved.value = true
   setTimeout(() => { saved.value = false }, 2000)
+}
+
+async function handleQrUpload(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  uploadingQr.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await request.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    if (res.code === 200) {
+      form.value.wechat_qr_url = res.data.url
+    }
+  } finally {
+    uploadingQr.value = false
+  }
 }
 </script>
 
@@ -54,6 +74,21 @@ async function handleSave() {
           <input v-model="form.contact_email">
         </div>
         <div class="form-group">
+          <label>营业时间</label>
+          <input v-model="form.business_hours" placeholder="如：周一至周五 9:00 - 18:00">
+        </div>
+        <div class="form-group">
+          <label>微信二维码</label>
+          <div class="upload-area">
+            <input type="file" accept="image/*" @change="handleQrUpload" style="display: none;" id="wechat-qr-upload">
+            <label for="wechat-qr-upload" class="upload-btn">
+              {{ uploadingQr ? '上传中...' : '上传二维码' }}
+            </label>
+            <img v-if="form.wechat_qr_url" :src="form.wechat_qr_url" class="preview-qr" alt="微信二维码">
+          </div>
+          <input v-model="form.wechat_qr_url" placeholder="或直接输入图片 URL" style="margin-top: 8px;">
+        </div>
+        <div class="form-group">
           <label>页脚文字</label>
           <input v-model="form.footer_text">
         </div>
@@ -73,6 +108,35 @@ async function handleSave() {
   margin-bottom: 20px;
   font-size: 14px;
   text-align: center;
+}
+
+.upload-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.upload-btn:hover {
+  border-color: var(--accent);
+}
+
+.preview-qr {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
 }
 
 @media (max-width: 768px) {

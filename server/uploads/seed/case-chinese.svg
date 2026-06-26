@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2f2418"/>
+      <stop offset="100%" stop-color="#1a120b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <rect x="80" y="100" width="1040" height="520" rx="12" fill="#3d2b1f" stroke="#8b6914" stroke-width="3"/>
+  <rect x="520" y="140" width="120" height="420" fill="#5c4030" opacity="0.8"/>
+  <circle cx="580" cy="350" r="70" fill="none" stroke="#d4af37" stroke-width="4"/>
+  <path d="M180 620 Q600 560 1020 620" stroke="#8b6914" stroke-width="6" fill="none"/>
+  <rect x="220" y="500" width="760" height="80" rx="8" fill="#4a3424"/>
+  <rect x="260" y="520" width="680" height="40" rx="6" fill="#6b4c33"/>
+  <text x="60" y="720" fill="#f5e6c8" font-size="42" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">新中式 · 四室两厅</text>
+  <text x="60" y="770" fill="#c4a574" font-size="24" font-family="PingFang SC, Microsoft YaHei, sans-serif">传统韵味 · 沉稳大气</text>
+</svg>

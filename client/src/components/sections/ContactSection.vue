@@ -63,7 +63,7 @@ async function handleSubmit() {
             <span>🕐</span>
             <div>
               <div class="detail-label">营业时间</div>
-              <div>周一至周五 9:00 - 18:00</div>
+              <div>{{ appStore.settings.business_hours || '周一至周五 9:00 - 18:00' }}</div>
             </div>
           </li>
           <li>
@@ -78,9 +78,10 @@ async function handleSubmit() {
         <div class="wechat-section">
           <div class="wechat-label">微信扫码咨询</div>
           <div class="wechat-qr">
-            <div class="qr-placeholder">
+            <img v-if="appStore.settings.wechat_qr_url" :src="appStore.settings.wechat_qr_url" alt="微信二维码" class="qr-image">
+            <div v-else class="qr-placeholder">
               <span>📱</span>
-              <span class="qr-text">微信二维码</span>
+              <span class="qr-text">请在后台上传微信二维码</span>
             </div>
           </div>
         </div>
@@ -225,6 +226,12 @@ async function handleSubmit() {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+}
+
+.qr-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .qr-placeholder {

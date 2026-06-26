@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { generateCasePoster } from '../utils/poster'
+import { useAppStore } from '../stores/app'
 
 const props = defineProps({
   visible: Boolean,
@@ -9,49 +10,47 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible'])
 
-const canvasRef = ref(null)
+const appStore = useAppStore()
 const posterBlob = ref(null)
 const generating = ref(false)
 const posterUrl = ref('')
+const errorMsg = ref('')
+
+const posterOptions = computed(() => ({
+  companyName: appStore.settings.company_name || '尚润装饰',
+  slogan: appStore.settings.company_slogan || appStore.settings.slogan || '专注品质装修 · 值得信赖',
+  wechatQrUrl: appStore.settings.wechat_qr_url || '',
+  siteLabel: appStore.settings.footer_text || '尚润装饰 · 品质装修',
+}))
 
 watch(
   () => props.visible,
   async (val) => {
     if (val && props.caseItem) {
       generating.value = true
+      errorMsg.value = ''
       posterBlob.value = null
-      try {
-        const blob = await generateCasePoster(props.caseItem)
-        posterBlob.value = blob
-        posterUrl.value = URL.createObjectURL(blob)
-        await nextTick()
-        drawPosterToCanvas()
-      } catch (e) {
-        console.error('Poster generation failed:', e)
-      } finally {
-        generating.value = false
-      }
-    } else {
       if (posterUrl.value) {
         URL.revokeObjectURL(posterUrl.value)
         posterUrl.value = ''
       }
+      try {
+        const blob = await generateCasePoster(props.caseItem, posterOptions.value)
+        posterBlob.value = blob
+        posterUrl.value = URL.createObjectURL(blob)
+      } catch (e) {
+        console.error('Poster generation failed:', e)
+        errorMsg.value = '海报生成失败，请稍后重试'
+      } finally {
+        generating.value = false
+      }
+    } else if (posterUrl.value) {
+      URL.revokeObjectURL(posterUrl.value)
+      posterUrl.value = ''
+      posterBlob.value = null
     }
   }
 )
-
-function drawPosterToCanvas() {
-  if (!canvasRef.value || !posterUrl.value) return
-  const canvas = canvasRef.value
-  const ctx = canvas.getContext('2d')
-  const img = new Image()
-  img.onload = () => {
-    canvas.width = img.width
-    canvas.height = img.height
-    ctx.drawImage(img, 0, 0)
-  }
-  img.src = posterUrl.value
-}
 
 function downloadPoster() {
   if (!posterBlob.value) return
@@ -85,13 +84,14 @@ function close() {
               <div class="poster-spinner"></div>
               <span>生成海报中...</span>
             </div>
-            <div v-else class="poster-preview">
-              <canvas ref="canvasRef" class="poster-canvas"></canvas>
+            <div v-else-if="errorMsg" class="poster-error">{{ errorMsg }}</div>
+            <div v-else-if="posterUrl" class="poster-preview">
+              <img :src="posterUrl" alt="案例分享海报" class="poster-image">
             </div>
           </div>
 
           <div class="poster-footer">
-            <button class="poster-btn poster-btn-primary" :disabled="generating" @click="downloadPoster">
+            <button class="poster-btn poster-btn-primary" :disabled="generating || !posterBlob" @click="downloadPoster">
               保存图片
             </button>
             <button class="poster-btn poster-btn-ghost" @click="close">关闭</button>
@@ -165,14 +165,21 @@ function close() {
   justify-content: center;
   align-items: center;
   min-height: 300px;
+  overflow-y: auto;
 }
 
-.poster-loading {
+.poster-loading,
+.poster-error {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
   color: var(--text-muted);
+  text-align: center;
+}
+
+.poster-error {
+  color: #f87171;
 }
 
 .poster-spinner {
@@ -194,13 +201,14 @@ function close() {
   justify-content: center;
 }
 
-.poster-canvas {
+.poster-image {
   width: 100%;
   max-width: 375px;
   height: auto;
-  aspect-ratio: 750 / 1334;
   border-radius: 8px;
   border: 1px solid var(--border);
+  display: block;
+  background: #09090b;
 }
 
 .poster-footer {
@@ -247,7 +255,6 @@ function close() {
   color: var(--accent);
 }
 
-/* Transition */
 .poster-modal-enter-active,
 .poster-modal-leave-active {
   transition: opacity 0.3s ease;

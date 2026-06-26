@@ -1,37 +1,86 @@
 const POSTER_WIDTH = 750
 const POSTER_HEIGHT = 1334
+const BG_COLOR = '#09090b'
 
-export function generateCasePoster(caseItem) {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas')
-    canvas.width = POSTER_WIDTH
-    canvas.height = POSTER_HEIGHT
-    const ctx = canvas.getContext('2d')
+function resolveUrl(url) {
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  const base = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${base}${url.startsWith('/') ? url : `/${url}`}`
+}
 
-    if (caseItem?.image_url) {
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        drawWithImage(ctx, img, caseItem)
-        canvas.toBlob((blob) => resolve(blob), 'image/png')
-      }
-      img.onerror = () => {
-        drawWithoutImage(ctx, caseItem)
-        canvas.toBlob((blob) => resolve(blob), 'image/png')
-      }
-      img.src = caseItem.image_url
-    } else {
-      drawWithoutImage(ctx, caseItem)
-      canvas.toBlob((blob) => resolve(blob), 'image/png')
-    }
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error(`Failed to load image: ${url}`))
+    img.src = resolveUrl(url)
   })
 }
 
-function drawWithImage(ctx, img, caseItem) {
-  // Top 30%: cropped image as background
-  const topHeight = POSTER_HEIGHT * 0.35
+function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Canvas export failed'))),
+      'image/png',
+      1
+    )
+  })
+}
+
+export async function generateCasePoster(caseItem, options = {}) {
+  const companyName = options.companyName || '尚润装饰'
+  const slogan = options.slogan || '专注品质装修 · 值得信赖'
+  const wechatQrUrl = options.wechatQrUrl || ''
+  const siteLabel = options.siteLabel || '尚润装饰 · 品质装修'
+
+  const canvas = document.createElement('canvas')
+  canvas.width = POSTER_WIDTH
+  canvas.height = POSTER_HEIGHT
+  const ctx = canvas.getContext('2d')
+
+  paintBackground(ctx)
+
+  const topHeight = POSTER_HEIGHT * 0.38
+  let headerDrawn = false
+
+  if (caseItem?.image_url) {
+    try {
+      const img = await loadImage(caseItem.image_url)
+      drawHeaderImage(ctx, img, topHeight)
+      headerDrawn = true
+    } catch {
+      drawHeaderFallback(ctx, caseItem, topHeight)
+    }
+  } else {
+    drawHeaderFallback(ctx, caseItem, topHeight)
+  }
+
+  if (headerDrawn) {
+    const grad = ctx.createLinearGradient(0, topHeight * 0.45, 0, topHeight + 80)
+    grad.addColorStop(0, 'rgba(9,9,11,0)')
+    grad.addColorStop(1, BG_COLOR)
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, POSTER_WIDTH, topHeight + 80)
+  }
+
+  await drawContent(ctx, caseItem, topHeight, { companyName, slogan, wechatQrUrl, siteLabel })
+
+  return canvasToBlob(canvas)
+}
+
+function paintBackground(ctx) {
+  ctx.fillStyle = BG_COLOR
+  ctx.fillRect(0, 0, POSTER_WIDTH, POSTER_HEIGHT)
+}
+
+function drawHeaderImage(ctx, img, topHeight) {
   const imgAspect = img.width / img.height
-  let sx = 0, sy = 0, sw = img.width, sh = img.height
+  let sx = 0
+  let sy = 0
+  let sw = img.width
+  let sh = img.height
   if (imgAspect > POSTER_WIDTH / topHeight) {
     sw = img.height * (POSTER_WIDTH / topHeight)
     sx = (img.width - sw) / 2
@@ -40,116 +89,146 @@ function drawWithImage(ctx, img, caseItem) {
     sy = (img.height - sh) / 2
   }
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, POSTER_WIDTH, topHeight)
+}
 
-  // Gradient overlay on image
-  const grad = ctx.createLinearGradient(0, topHeight * 0.5, 0, topHeight)
-  grad.addColorStop(0, 'rgba(9,9,11,0.0)')
-  grad.addColorStop(1, 'rgba(9,9,11,0.95)')
+function drawHeaderFallback(ctx, caseItem, topHeight) {
+  const palettes = [
+    ['#1e3a5f', '#3b1c5e', '#1a0a2e'],
+    ['#1c3d2f', '#0f2922', '#0a1f15'],
+    ['#4a1942', '#2d1b4e', '#1a0a2e'],
+  ]
+  const palette = palettes[(caseItem?.id || 0) % palettes.length]
+  const grad = ctx.createLinearGradient(0, 0, POSTER_WIDTH, topHeight)
+  grad.addColorStop(0, palette[0])
+  grad.addColorStop(0.55, palette[1])
+  grad.addColorStop(1, palette[2])
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, POSTER_WIDTH, topHeight)
 
-  drawContent(ctx, caseItem, topHeight)
-}
-
-function drawWithoutImage(ctx, caseItem) {
-  // Gradient background
-  const grad = ctx.createLinearGradient(0, 0, POSTER_WIDTH, POSTER_HEIGHT * 0.4)
-  grad.addColorStop(0, '#1e3a5f')
-  grad.addColorStop(0.5, '#3b1c5e')
-  grad.addColorStop(1, '#1a0a2e')
-  ctx.fillStyle = grad
-  ctx.fillRect(0, 0, POSTER_WIDTH, POSTER_HEIGHT * 0.4)
-
-  // Background pattern
-  ctx.globalAlpha = 0.05
-  for (let i = 0; i < 20; i++) {
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'
+  for (let i = 0; i < 12; i++) {
     ctx.beginPath()
     ctx.arc(
-      Math.random() * POSTER_WIDTH,
-      Math.random() * POSTER_HEIGHT * 0.4,
-      Math.random() * 60 + 20,
+      (i * 97 + 40) % POSTER_WIDTH,
+      (i * 53 + 20) % topHeight,
+      24 + (i % 4) * 14,
       0,
       Math.PI * 2
     )
-    ctx.fillStyle = '#ffffff'
     ctx.fill()
   }
-  ctx.globalAlpha = 1
 
-  drawContent(ctx, caseItem, POSTER_HEIGHT * 0.35)
+  if (caseItem?.icon) {
+    ctx.font = '120px "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(caseItem.icon, POSTER_WIDTH / 2, topHeight * 0.55)
+  }
 }
 
-function drawContent(ctx, caseItem, contentStartY) {
+async function drawContent(ctx, caseItem, contentStartY, meta) {
   const centerX = POSTER_WIDTH / 2
+  const { companyName, slogan, wechatQrUrl, siteLabel } = meta
 
-  // Company name
   ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 56px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.font = 'bold 52px "PingFang SC", "Microsoft YaHei", sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('尚润装饰', centerX, contentStartY + 80)
+  ctx.fillText(companyName, centerX, contentStartY + 60)
 
-  // Slogan
-  ctx.fillStyle = 'rgba(255,255,255,0.7)'
-  ctx.font = '300 28px "PingFang SC", "Microsoft YaHei", sans-serif'
-  ctx.fillText('专注品质装修 · 值得信赖', centerX, contentStartY + 130)
+  ctx.fillStyle = 'rgba(255,255,255,0.72)'
+  ctx.font = '26px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.fillText(slogan, centerX, contentStartY + 108)
 
-  // Decorative line
-  const lineY = contentStartY + 170
-  const lineGrad = ctx.createLinearGradient(centerX - 100, 0, centerX + 100, 0)
-  lineGrad.addColorStop(0, 'rgba(59,130,246,0)')
-  lineGrad.addColorStop(0.5, 'rgba(59,130,246,0.8)')
-  lineGrad.addColorStop(1, 'rgba(139,92,246,0)')
-  ctx.fillStyle = lineGrad
-  ctx.fillRect(centerX - 120, lineY, 240, 2)
+  const lineY = contentStartY + 145
+  drawAccentLine(ctx, centerX, lineY)
 
-  // Case title
-  const title = caseItem?.title || '精选案例'
-  ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 40px "PingFang SC", "Microsoft YaHei", sans-serif'
-  ctx.textAlign = 'center'
-  wrapText(ctx, title, centerX, lineY + 70, POSTER_WIDTH - 120, 56)
-
-  // Case description
-  const desc = caseItem?.description || ''
-  const truncatedDesc = desc.length > 80 ? desc.slice(0, 80) + '...' : desc
-  if (truncatedDesc) {
-    ctx.fillStyle = 'rgba(255,255,255,0.65)'
-    ctx.font = '28px "PingFang SC", "Microsoft YaHei", sans-serif'
-    const titleEndY = lineY + 70 + 60
-    wrapText(ctx, truncatedDesc, centerX, titleEndY, POSTER_WIDTH - 140, 42)
+  if (caseItem?.tag) {
+    ctx.fillStyle = 'rgba(59,130,246,0.25)'
+    const tag = caseItem.tag
+    ctx.font = '24px "PingFang SC", "Microsoft YaHei", sans-serif'
+    const tagWidth = ctx.measureText(tag).width + 36
+    roundRect(ctx, centerX - tagWidth / 2, lineY + 18, tagWidth, 42, 21)
+    ctx.fill()
+    ctx.fillStyle = '#93c5fd'
+    ctx.fillText(tag, centerX, lineY + 48)
   }
 
-  // Bottom area
-  const bottomY = POSTER_HEIGHT - 200
+  const title = caseItem?.title || '精选案例'
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 38px "PingFang SC", "Microsoft YaHei", sans-serif'
+  wrapText(ctx, title, centerX, lineY + 110, POSTER_WIDTH - 120, 50)
 
-  // Bottom decorative line
-  ctx.fillStyle = lineGrad
-  ctx.fillRect(centerX - 120, bottomY, 240, 2)
+  const desc = caseItem?.description || ''
+  const truncatedDesc = desc.length > 90 ? `${desc.slice(0, 90)}...` : desc
+  if (truncatedDesc) {
+    ctx.fillStyle = 'rgba(255,255,255,0.68)'
+    ctx.font = '26px "PingFang SC", "Microsoft YaHei", sans-serif'
+    wrapText(ctx, truncatedDesc, centerX, lineY + 175, POSTER_WIDTH - 140, 40)
+  }
 
-  // "Scan to learn more"
-  ctx.fillStyle = 'rgba(255,255,255,0.5)'
+  const bottomY = POSTER_HEIGHT - 250
+  drawAccentLine(ctx, centerX, bottomY)
+
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'
   ctx.font = '24px "PingFang SC", "Microsoft YaHei", sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('扫码了解更多', centerX, bottomY + 50)
+  ctx.fillText('扫码了解更多', centerX, bottomY + 42)
 
-  // QR placeholder area
-  const qrSize = 120
+  const qrSize = 140
   const qrX = centerX - qrSize / 2
-  const qrY = bottomY + 70
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)'
+  const qrY = bottomY + 62
+
+  if (wechatQrUrl) {
+    try {
+      const qrImg = await loadImage(wechatQrUrl)
+      ctx.fillStyle = '#ffffff'
+      roundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 12)
+      ctx.fill()
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
+    } catch {
+      drawQrPlaceholder(ctx, centerX, qrX, qrY, qrSize)
+    }
+  } else {
+    drawQrPlaceholder(ctx, centerX, qrX, qrY, qrSize)
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.35)'
+  ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.fillText(siteLabel, centerX, POSTER_HEIGHT - 36)
+}
+
+function drawAccentLine(ctx, centerX, y) {
+  const lineGrad = ctx.createLinearGradient(centerX - 100, 0, centerX + 100, 0)
+  lineGrad.addColorStop(0, 'rgba(59,130,246,0)')
+  lineGrad.addColorStop(0.5, 'rgba(59,130,246,0.85)')
+  lineGrad.addColorStop(1, 'rgba(139,92,246,0)')
+  ctx.fillStyle = lineGrad
+  ctx.fillRect(centerX - 120, y, 240, 2)
+}
+
+function drawQrPlaceholder(ctx, centerX, qrX, qrY, qrSize) {
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)'
   ctx.lineWidth = 2
   ctx.setLineDash([6, 4])
   ctx.strokeRect(qrX, qrY, qrSize, qrSize)
   ctx.setLineDash([])
-  ctx.fillStyle = 'rgba(255,255,255,0.25)'
-  ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.fillStyle = 'rgba(255,255,255,0.28)'
+  ctx.font = '22px "PingFang SC", "Microsoft YaHei", sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('二维码', centerX, qrY + qrSize / 2 + 6)
+  ctx.fillText('微信咨询', centerX, qrY + qrSize / 2 + 8)
+}
 
-  // Footer
-  ctx.fillStyle = 'rgba(255,255,255,0.3)'
-  ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif'
-  ctx.fillText('尚润装饰 · shangrun', centerX, POSTER_HEIGHT - 40)
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.lineTo(x + width - radius, y)
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
+  ctx.lineTo(x + width, y + height - radius)
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+  ctx.lineTo(x + radius, y + height)
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
+  ctx.lineTo(x, y + radius)
+  ctx.quadraticCurveTo(x, y, x + radius, y)
+  ctx.closePath()
 }
 
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -159,8 +238,7 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 
   for (let i = 0; i < chars.length; i++) {
     const testLine = line + chars[i]
-    const metrics = ctx.measureText(testLine)
-    if (metrics.width > maxWidth && i > 0) {
+    if (ctx.measureText(testLine).width > maxWidth && i > 0) {
       ctx.fillText(line, x, currentY)
       line = chars[i]
       currentY += lineHeight
@@ -168,5 +246,5 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
       line = testLine
     }
   }
-  ctx.fillText(line, x, currentY)
+  if (line) ctx.fillText(line, x, currentY)
 }

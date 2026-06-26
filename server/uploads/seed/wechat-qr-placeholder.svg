@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" rx="24" fill="#ffffff"/>
+  <rect x="24" y="24" width="352" height="352" rx="16" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+  <rect x="56" y="56" width="96" height="96" rx="8" fill="#111827"/>
+  <rect x="248" y="56" width="96" height="96" rx="8" fill="#111827"/>
+  <rect x="56" y="248" width="96" height="96" rx="8" fill="#111827"/>
+  <rect x="184" y="184" width="32" height="32" fill="#111827"/>
+  <rect x="232" y="184" width="16" height="16" fill="#111827"/>
+  <rect x="184" y="232" width="16" height="16" fill="#111827"/>
+  <rect x="216" y="216" width="48" height="48" rx="6" fill="#22c55e"/>
+  <text x="200" y="372" text-anchor="middle" fill="#64748b" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif">尚润装饰 · 微信咨询</text>
+</svg>
