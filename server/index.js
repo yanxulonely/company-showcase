@@ -29,7 +29,10 @@ initDatabase();
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '7d',
+  etag: true,
   setHeaders(res, filePath) {
+    res.setHeader('Cache-Control', 'public, max-age=604800');
     res.setHeader('Content-Disposition', 'inline');
     if (filePath.endsWith('.pdf')) {
       res.setHeader('Content-Type', 'application/pdf');
