@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAppStore } from '../../stores/app'
-import request from '../../utils/request'
+import { uploadFile } from '../../utils/upload'
 
 const appStore = useAppStore()
 const form = ref({})
@@ -23,14 +23,14 @@ async function handleQrUpload(e) {
   if (!file) return
   uploadingQr.value = true
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await request.post('/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const res = await uploadFile(file)
     if (res.code === 200) {
       form.value.wechat_qr_url = res.data.url
+    } else {
+      alert(res.message || '上传失败')
     }
+  } catch (err) {
+    alert(err.response?.data?.message || err.message || '上传失败')
   } finally {
     uploadingQr.value = false
   }

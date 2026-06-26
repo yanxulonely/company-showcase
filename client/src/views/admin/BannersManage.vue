@@ -1,19 +1,23 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useBannersStore } from '../../stores/banners'
-import request from '../../utils/request'
+import { uploadFile, withCacheBust } from '../../utils/upload'
 
 const bannersStore = useBannersStore()
 const showModal = ref(false)
 const editItem = ref(null)
 const form = ref({ title: '', subtitle: '', image_url: '', sort_order: 0, is_active: 1 })
 const uploading = ref(false)
+const previewUrl = ref('')
+const uploadHint = ref('')
 
 onMounted(() => bannersStore.fetchAll())
 
 function openCreate() {
   editItem.value = null
   form.value = { title: '', subtitle: '', image_url: '', sort_order: 0, is_active: 1 }
+  previewUrl.value = ''
+  uploadHint.value = ''
   showModal.value = true
 }
 
@@ -26,16 +30,24 @@ function openEdit(item) {
     sort_order: item.sort_order || 0,
     is_active: item.is_active
   }
+  previewUrl.value = item.image_url ? withCacheBust(item.image_url) : ''
+  uploadHint.value = ''
   showModal.value = true
 }
 
 async function handleSubmit() {
-  if (editItem.value) {
-    const res = await bannersStore.update(editItem.value.id, form.value)
-    if (res.code === 200) showModal.value = false
+  if (!form.value.image_url) {
+    alert('请先上传轮播图图片')
+    return
+  }
+  const res = editItem.value
+    ? await bannersStore.update(editItem.value.id, form.value)
+    : await bannersStore.create(form.value)
+  if (res.code === 200) {
+    showModal.value = false
+    await bannersStore.fetchAll()
   } else {
-    const res = await bannersStore.create(form.value)
-    if (res.code === 200) showModal.value = false
+    alert(res.message || '保存失败')
   }
 }
 
@@ -48,18 +60,24 @@ async function handleToggle(item) {
 }
 
 async function handleUpload(e) {
-  const file = e.target.files[0]
+  const file = e.target.files?.[0]
+  e.target.value = ''
   if (!file) return
   uploading.value = true
+  uploadHint.value = ''
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await request.post('/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    const res = await uploadFile(file)
     if (res.code === 200) {
       form.value.image_url = res.data.url
+      previewUrl.value = withCacheBust(res.data.url)
+      uploadHint.value = '上传成功，请点击下方「保存」生效'
+    } else {
+      uploadHint.value = res.message || '上传失败'
+      alert(uploadHint.value)
     }
+  } catch (err) {
+    uploadHint.value = err.response?.data?.message || err.message || '上传失败'
+    alert(uploadHint.value)
   } finally {
     uploading.value = false
   }
@@ -133,8 +151,9 @@ async function handleUpload(e) {
               <label for="banner-upload" class="upload-btn">
                 {{ uploading ? '上传中...' : '选择图片' }}
               </label>
-              <img v-if="form.image_url" :src="form.image_url" class="preview-img" alt="">
+              <img v-if="previewUrl" :src="previewUrl" class="preview-img" alt="">
             </div>
+            <p v-if="uploadHint" class="upload-hint">{{ uploadHint }}</p>
             <input v-model="form.image_url" placeholder="或直接输入图片 URL" style="margin-top: 8px;">
           </div>
           <div class="form-group">
@@ -193,5 +212,11 @@ async function handleUpload(e) {
   height: 45px;
   object-fit: cover;
   border-radius: 6px;
+}
+
+.upload-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #22c55e;
 }
 </style>

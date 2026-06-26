@@ -89,10 +89,7 @@ export const useMaterialsStore = defineStore('materials', () => {
   async function upload(file) {
     const formData = new FormData()
     formData.append('file', file)
-    const res = await request.post('/materials/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    return res
+    return request.post('/materials/upload', formData)
   }
 
   return {

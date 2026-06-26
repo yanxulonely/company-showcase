@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useCasesStore } from '../../stores/cases'
-import request from '../../utils/request'
+import { uploadFile } from '../../utils/upload'
 
 const casesStore = useCasesStore()
 const showModal = ref(false)
@@ -52,14 +52,14 @@ async function handleUpload(e) {
   if (!file) return
   uploading.value = true
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await request.post('/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const res = await uploadFile(file)
     if (res.code === 200) {
       form.value.image_url = res.data.url
+    } else {
+      alert(res.message || '上传失败')
     }
+  } catch (err) {
+    alert(err.response?.data?.message || err.message || '上传失败')
   } finally {
     uploading.value = false
   }

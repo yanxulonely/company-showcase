@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useDesignersStore } from '../../stores/designers'
-import request from '../../utils/request'
+import { uploadFile } from '../../utils/upload'
 
 const store = useDesignersStore()
 const showModal = ref(false)
@@ -109,16 +109,16 @@ async function handleToggle(item) {
 }
 
 async function handleUpload(e) {
-  const file = e.target.files[0]
+  const file = e.target.files?.[0]
+  e.target.value = ''
   if (!file) return
   uploading.value = true
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await request.post('/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const res = await uploadFile(file)
     if (res.code === 200) form.value.photo_url = res.data.url
+    else alert(res.message || '上传失败')
+  } catch (err) {
+    alert(err.response?.data?.message || err.message || '上传失败')
   } finally {
     uploading.value = false
   }
