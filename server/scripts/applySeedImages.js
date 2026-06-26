@@ -24,13 +24,38 @@ function upsertSetting(key, value) {
   return true;
 }
 
-function main() {
+function migrateSeedPngToJpg() {
+  const pairs = [
+    ['case-modern.png', 'case-modern.jpg'],
+    ['case-chinese.png', 'case-chinese.jpg'],
+    ['case-luxury.png', 'case-luxury.jpg'],
+    ['banner-1.png', 'banner-1.jpg'],
+    ['banner-2.png', 'banner-2.jpg'],
+    ['designer-1.png', 'designer-1.jpg'],
+    ['designer-2.png', 'designer-2.jpg'],
+  ];
   let count = 0;
+  for (const [from, to] of pairs) {
+    const fromUrl = `/uploads/seed/${from}`;
+    const toUrl = `/uploads/seed/${to}`;
+    for (const [table, col] of [['cases', 'image_url'], ['banners', 'image_url'], ['designers', 'photo_url']]) {
+      const r = db.prepare(`UPDATE ${table} SET ${col} = ? WHERE ${col} = ?`).run(toUrl, fromUrl);
+      if (r.changes) {
+        count += r.changes;
+        console.log(`${table}.${col}: ${fromUrl} -> ${toUrl}`);
+      }
+    }
+  }
+  return count;
+}
+
+function main() {
+  let count = migrateSeedPngToJpg();
 
   const caseImages = [
-    '/uploads/seed/case-modern.png',
-    '/uploads/seed/case-chinese.png',
-    '/uploads/seed/case-luxury.png',
+    '/uploads/seed/case-modern.jpg',
+    '/uploads/seed/case-chinese.jpg',
+    '/uploads/seed/case-luxury.jpg',
   ];
   const cases = db.prepare('SELECT id, image_url FROM cases ORDER BY sort_order ASC, id ASC').all();
   cases.forEach((row, index) => {
@@ -41,7 +66,7 @@ function main() {
     }
   });
 
-  const bannerImages = ['/uploads/seed/banner-1.png', '/uploads/seed/banner-2.png'];
+  const bannerImages = ['/uploads/seed/banner-1.jpg', '/uploads/seed/banner-2.jpg'];
   const banners = db.prepare('SELECT id, image_url FROM banners ORDER BY sort_order ASC, id ASC').all();
   banners.forEach((row, index) => {
     if (!row.image_url && bannerImages[index]) {
@@ -51,7 +76,7 @@ function main() {
     }
   });
 
-  const designerImages = ['/uploads/seed/designer-1.png', '/uploads/seed/designer-2.png'];
+  const designerImages = ['/uploads/seed/designer-1.jpg', '/uploads/seed/designer-2.jpg'];
   const designers = db.prepare('SELECT id, photo_url FROM designers ORDER BY sort_order ASC, id ASC').all();
   designers.forEach((row, index) => {
     if (!row.photo_url && designerImages[index]) {

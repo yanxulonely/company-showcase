@@ -1,29 +1,20 @@
 const express = require('express');
-const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 const { db } = require('../db');
 const { authMiddleware, requireRole } = require('../middleware/auth');
+const { createUploader, finalizeUpload, UPLOADS_DIR } = require('../lib/uploadStorage');
 
 const router = express.Router();
 
-// File upload config
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, '..', 'uploads'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `material-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`);
-  }
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 50 * 1024 * 1024 },
+const upload = createUploader({
+  filenamePrefix: 'material-',
+  fileSizeLimit: 50 * 1024 * 1024,
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|gif|webp|svg|pdf|doc|docx|ppt|pptx|xls|xlsx/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    cb(null, ext);
-  }
+    cb(null, allowed.test(path.extname(file.originalname).toLowerCase()));
+  },
 });
 
 // GET /api/materials - 获取资料列表
@@ -170,22 +161,26 @@ router.post('/upload', authMiddleware, requireRole('admin'), upload.single('file
   if (!req.file) {
     return res.json({ code: 400, message: '请选择文件', data: null });
   }
-  const url = `/uploads/${req.file.filename}`;
-  const result = { url, filename: req.file.filename, originalname: req.file.originalname };
+  let saved;
+  try {
+    saved = finalizeUpload(req.file.filename);
+  } catch (e) {
+    console.error('Material upload finalize failed:', e);
+    return res.json({ code: 500, message: '保存文件失败', data: null });
+  }
+  const url = saved.url;
+  const result = { url, filename: saved.filename, originalname: req.file.originalname };
 
-  // PPT/PPTX 自动转 PDF
   const ext = path.extname(req.file.originalname).toLowerCase();
   if (['.ppt', '.pptx'].includes(ext)) {
     try {
-      const uploadsDir = path.join(__dirname, '..', 'uploads');
-      const baseName = path.basename(req.file.filename, ext);
+      const baseName = path.basename(saved.filename, ext);
       const pdfName = baseName + '.pdf';
-      const pdfPath = path.join(uploadsDir, pdfName);
-      execSync(`libreoffice --headless --convert-to pdf --outdir "${uploadsDir}" "${req.file.path}"`, { timeout: 30000 });
+      const pdfPath = path.join(UPLOADS_DIR, pdfName);
+      execSync(`libreoffice --headless --convert-to pdf --outdir "${UPLOADS_DIR}" "${saved.path}"`, { timeout: 30000 });
       if (fs.existsSync(pdfPath)) {
         result.pdf_url = `/uploads/${pdfName}`;
         result.pdf_filename = pdfName;
-        // 更新数据库中的 pdf_url
         db.prepare('UPDATE materials SET pdf_url = ?, pdf_filename = ? WHERE file_url = ?')
           .run(`/uploads/${pdfName}`, pdfName, url);
       }

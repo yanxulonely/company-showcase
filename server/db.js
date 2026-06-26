@@ -236,17 +236,17 @@ function initDatabase() {
     insertCase.run(
       '现代简约 · 三室两厅',
       '120㎡现代简约风格，整体以白色和原木色为主调，简洁大方，适合年轻家庭。',
-      '现代简约', '🏠', '/uploads/seed/case-modern.png', 1
+      '现代简约', '🏠', '/uploads/seed/case-modern.jpg', 1
     );
     insertCase.run(
       '新中式 · 四室两厅',
       '160㎡新中式风格，融入传统中式元素，沉稳大气，彰显文化底蕴。',
-      '新中式', '🏡', '/uploads/seed/case-chinese.png', 2
+      '新中式', '🏡', '/uploads/seed/case-chinese.jpg', 2
     );
     insertCase.run(
       '轻奢风格 · 复式',
       '200㎡轻奢风格复式楼，金属质感与大理石搭配，品质生活从家开始。',
-      '轻奢', '🏢', '/uploads/seed/case-luxury.png', 3
+      '轻奢', '🏢', '/uploads/seed/case-luxury.jpg', 3
     );
   }
 
@@ -272,13 +272,13 @@ function initDatabase() {
     insertDesigner.run(
       '林晓雯', '首席设计师',
       '国家注册室内设计师，擅长现代简约与轻奢风格，注重空间采光与收纳规划，善于在有限面积内实现功能与美感平衡。',
-      '/uploads/seed/designer-1.png', JSON.stringify(['现代简约', '轻奢']), 8, 120,
+      '/uploads/seed/designer-1.jpg', JSON.stringify(['现代简约', '轻奢']), 8, 120,
       '让家成为生活的延伸，而不是简单的样板间', JSON.stringify([1, 3]), 1
     );
     insertDesigner.run(
       '陈宇航', '资深设计师',
       '深耕新中式与混搭风格，熟悉本地户型改造要点，从动线、材料到软装提供一站式方案，沟通耐心、落地细致。',
-      '/uploads/seed/designer-2.png', JSON.stringify(['新中式', '现代简约']), 6, 85,
+      '/uploads/seed/designer-2.jpg', JSON.stringify(['新中式', '现代简约']), 6, 85,
       '传统韵味与现代舒适，可以兼得', JSON.stringify([2]), 2
     );
   }
@@ -311,8 +311,8 @@ function initDatabase() {
   const bannersCount = Number(db.prepare('SELECT COUNT(*) as count FROM banners').get().count);
   if (bannersCount === 0) {
     const insertBanner = db.prepare('INSERT INTO banners (title, subtitle, image_url, sort_order) VALUES (?, ?, ?, ?)');
-    insertBanner.run('用心装修每一个家', '尚润装饰，品质生活从家开始', '/uploads/seed/banner-1.png', 1);
-    insertBanner.run('精工细作 品质保障', '自有施工团队，严格施工标准，让您装修更放心', '/uploads/seed/banner-2.png', 2);
+    insertBanner.run('用心装修每一个家', '尚润装饰，品质生活从家开始', '/uploads/seed/banner-1.jpg', 1);
+    insertBanner.run('精工细作 品质保障', '自有施工团队，严格施工标准，让您装修更放心', '/uploads/seed/banner-2.jpg', 2);
   }
 
   const catCount = Number(db.prepare('SELECT COUNT(*) as count FROM material_categories').get().count);
