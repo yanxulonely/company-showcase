@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/', (req, res) => {
   const {
     name, phone, address, area, budget, company, contact_info, message,
-    designer_id, designer_name,
+    designer_id, designer_name, activity_title,
   } = req.body;
   if (!name) return res.json({ code: 400, message: '姓名不能为空', data: null });
   if (!phone) return res.json({ code: 400, message: '手机号不能为空', data: null });
@@ -24,6 +24,7 @@ router.post('/', (req, res) => {
   // Build message from fields
   const parts = [];
   if (resolvedDesignerName) parts.push(`意向设计师: ${resolvedDesignerName}`);
+  if (activity_title) parts.push(`咨询活动: ${activity_title}`);
   if (address) parts.push(`地址: ${address}`);
   if (area) parts.push(`面积: ${area}`);
   if (budget) parts.push(`预算: ${budget}`);

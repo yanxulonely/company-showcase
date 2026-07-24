@@ -65,6 +65,9 @@ const navItems = [
         </router-link>
       </nav>
       <div class="sidebar-footer">
+        <router-link v-if="authStore.isAdmin" to="/admin" class="sidebar-link admin-link" @click="closeSidebar">
+          ⚙️ 管理后台
+        </router-link>
         <a href="#/" class="sidebar-link">🌐 返回首页</a>
         <button @click="logout" class="sidebar-link logout-btn">🚪 退出登录</button>
       </div>
@@ -180,6 +183,15 @@ const navItems = [
 
 .sidebar-link:hover {
   color: var(--text-primary);
+}
+
+.admin-link {
+  color: var(--accent-light);
+  font-weight: 500;
+}
+
+.admin-link:hover {
+  color: var(--accent);
 }
 
 .logout-btn:hover {

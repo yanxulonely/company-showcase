@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useCapabilitiesStore } from '../../stores/capabilities'
+import ModuleVisibilityToggle from '../../components/admin/ModuleVisibilityToggle.vue'
 
 const store = useCapabilitiesStore()
 const showModal = ref(false)
@@ -41,6 +42,7 @@ async function handleDelete(id) {
       <h1>能力管理</h1>
       <button class="btn btn-primary" @click="openCreate">+ 新增能力</button>
     </div>
+    <ModuleVisibilityToggle module-id="capabilities" />
     <div class="admin-card">
       <table class="admin-table">
         <thead>

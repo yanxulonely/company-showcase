@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useDesignersStore } from '../../stores/designers'
 import { uploadFile } from '../../utils/upload'
+import ModuleVisibilityToggle from '../../components/admin/ModuleVisibilityToggle.vue'
 
 const store = useDesignersStore()
 const showModal = ref(false)
@@ -131,6 +132,7 @@ async function handleUpload(e) {
       <h1>设计师管理</h1>
       <button class="btn btn-primary" @click="openCreate">+ 新增设计师</button>
     </div>
+    <ModuleVisibilityToggle module-id="designers" />
     <div class="admin-card">
       <table class="admin-table">
         <thead>

@@ -55,7 +55,6 @@ async function handleLogin() {
           {{ loading ? '登录中...' : '登录' }}
         </button>
       </form>
-      <div class="login-hint">默认账号：admin / admin123</div>
     </div>
   </div>
 </template>
@@ -172,12 +171,5 @@ async function handleLogin() {
 .login-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.login-hint {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
-  margin-top: 20px;
 }
 </style>

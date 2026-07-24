@@ -248,3 +248,122 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   }
   if (line) ctx.fillText(line, x, currentY)
 }
+
+export async function generateActivityPoster(activity, options = {}) {
+  const companyName = options.companyName || '尚润装饰'
+  const slogan = options.slogan || '专注品质装修 · 值得信赖'
+  const qrDataUrl = options.qrDataUrl || ''
+  const siteLabel = options.siteLabel || '尚润装饰 · 品质装修'
+
+  const canvas = document.createElement('canvas')
+  canvas.width = POSTER_WIDTH
+  canvas.height = POSTER_HEIGHT
+  const ctx = canvas.getContext('2d')
+
+  paintBackground(ctx)
+
+  const topHeight = POSTER_HEIGHT * 0.38
+  let headerDrawn = false
+
+  const coverUrl = activity?.cover_image_url
+  if (coverUrl) {
+    try {
+      const img = await loadImage(coverUrl)
+      drawHeaderImage(ctx, img, topHeight)
+      headerDrawn = true
+    } catch {
+      drawHeaderFallback(ctx, { id: activity?.id, icon: '🎉' }, topHeight)
+    }
+  } else {
+    drawHeaderFallback(ctx, { id: activity?.id, icon: '🎉' }, topHeight)
+  }
+
+  if (headerDrawn) {
+    const grad = ctx.createLinearGradient(0, topHeight * 0.45, 0, topHeight + 80)
+    grad.addColorStop(0, 'rgba(9,9,11,0)')
+    grad.addColorStop(1, BG_COLOR)
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, POSTER_WIDTH, topHeight + 80)
+  }
+
+  const activityAsCase = {
+    title: activity?.title || '精彩活动',
+    description: activity?.summary || '',
+    tag: activity?.location || '活动',
+  }
+
+  await drawActivityContent(ctx, activityAsCase, topHeight, { companyName, slogan, qrDataUrl, siteLabel })
+
+  return canvasToBlob(canvas)
+}
+
+async function drawActivityContent(ctx, item, contentStartY, meta) {
+  const centerX = POSTER_WIDTH / 2
+  const { companyName, slogan, qrDataUrl, siteLabel } = meta
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 52px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(companyName, centerX, contentStartY + 60)
+
+  ctx.fillStyle = 'rgba(255,255,255,0.72)'
+  ctx.font = '26px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.fillText(slogan, centerX, contentStartY + 108)
+
+  const lineY = contentStartY + 145
+  drawAccentLine(ctx, centerX, lineY)
+
+  if (item?.tag) {
+    ctx.fillStyle = 'rgba(59,130,246,0.25)'
+    const tag = item.tag
+    ctx.font = '24px "PingFang SC", "Microsoft YaHei", sans-serif'
+    const tagWidth = ctx.measureText(tag).width + 36
+    roundRect(ctx, centerX - tagWidth / 2, lineY + 18, tagWidth, 42, 21)
+    ctx.fill()
+    ctx.fillStyle = '#93c5fd'
+    ctx.fillText(tag, centerX, lineY + 48)
+  }
+
+  const title = item?.title || '精彩活动'
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 38px "PingFang SC", "Microsoft YaHei", sans-serif'
+  wrapText(ctx, title, centerX, lineY + 110, POSTER_WIDTH - 120, 50)
+
+  const desc = item?.description || ''
+  const truncatedDesc = desc.length > 90 ? `${desc.slice(0, 90)}...` : desc
+  if (truncatedDesc) {
+    ctx.fillStyle = 'rgba(255,255,255,0.68)'
+    ctx.font = '26px "PingFang SC", "Microsoft YaHei", sans-serif'
+    wrapText(ctx, truncatedDesc, centerX, lineY + 175, POSTER_WIDTH - 140, 40)
+  }
+
+  const bottomY = POSTER_HEIGHT - 250
+  drawAccentLine(ctx, centerX, bottomY)
+
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'
+  ctx.font = '24px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('扫码查看活动详情', centerX, bottomY + 42)
+
+  const qrSize = 140
+  const qrX = centerX - qrSize / 2
+  const qrY = bottomY + 62
+
+  if (qrDataUrl) {
+    try {
+      const qrImg = await loadImage(qrDataUrl)
+      ctx.fillStyle = '#ffffff'
+      roundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 12)
+      ctx.fill()
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
+    } catch {
+      drawQrPlaceholder(ctx, centerX, qrX, qrY, qrSize)
+    }
+  } else {
+    drawQrPlaceholder(ctx, centerX, qrX, qrY, qrSize)
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.35)'
+  ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif'
+  ctx.fillText(siteLabel, centerX, POSTER_HEIGHT - 36)
+}

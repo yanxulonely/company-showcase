@@ -5,9 +5,10 @@ import { useContactsStore } from '../../stores/contacts'
 
 const props = defineProps({
   preferredDesigner: { type: Object, default: null },
+  preferredActivity: { type: Object, default: null },
 })
 
-const emit = defineEmits(['clear-designer'])
+const emit = defineEmits(['clear-designer', 'clear-activity'])
 
 const appStore = useAppStore()
 const contactsStore = useContactsStore()
@@ -26,12 +27,16 @@ async function handleSubmit() {
     payload.designer_id = props.preferredDesigner.id
     payload.designer_name = props.preferredDesigner.name
   }
+  if (props.preferredActivity?.title) {
+    payload.activity_title = props.preferredActivity.title
+  }
   const res = await contactsStore.submit(payload)
   submitting.value = false
   if (res.code === 200) {
     submitted.value = true
     form.value = { name: '', phone: '', address: '', area: '', budget: '' }
     emit('clear-designer')
+    emit('clear-activity')
     setTimeout(() => { submitted.value = false }, 3000)
   }
 }
@@ -97,6 +102,10 @@ async function handleSubmit() {
         <div v-if="preferredDesigner" class="designer-pick">
           <span>已选择意向设计师：<strong>{{ preferredDesigner.name }}</strong></span>
           <button type="button" class="clear-pick" @click="emit('clear-designer')">取消</button>
+        </div>
+        <div v-if="preferredActivity" class="designer-pick activity-pick">
+          <span>咨询活动：<strong>{{ preferredActivity.title }}</strong></span>
+          <button type="button" class="clear-pick" @click="emit('clear-activity')">取消</button>
         </div>
         <div class="form-row">
           <div class="form-group">

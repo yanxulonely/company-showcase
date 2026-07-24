@@ -1,9 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '../stores/app'
 import { useAuthStore } from '../stores/auth'
 import ThemeToggle from './ThemeToggle.vue'
-import { computed } from 'vue'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -11,14 +10,9 @@ const menuOpen = ref(false)
 
 const isEmployee = computed(() => authStore.isEmployee)
 
-const navLinks = [
-  { label: '首页', href: '#home' },
-  { label: '案例', href: '#cases' },
-  { label: '设计师', href: '#designers' },
-  { label: '能力', href: '#capabilities' },
-  { label: '评价', href: '#reviews' },
-  { label: '标准', href: '#standards' },
-]
+const navLinks = computed(() =>
+  appStore.visibleNavModules().map((m) => ({ label: m.navLabel, href: m.anchor }))
+)
 
 function scrollTo(hash) {
   menuOpen.value = false

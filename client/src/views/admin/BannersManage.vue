@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useBannersStore } from '../../stores/banners'
 import { uploadFile, withCacheBust } from '../../utils/upload'
+import ModuleVisibilityToggle from '../../components/admin/ModuleVisibilityToggle.vue'
 
 const bannersStore = useBannersStore()
 const showModal = ref(false)
@@ -90,6 +91,7 @@ async function handleUpload(e) {
       <h1>轮播图管理</h1>
       <button class="btn btn-primary" @click="openCreate">+ 新增轮播图</button>
     </div>
+    <ModuleVisibilityToggle module-id="hero" />
     <div class="admin-card">
       <table class="admin-table">
         <thead>

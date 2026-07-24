@@ -18,6 +18,8 @@ const bannersRoutes = require('./routes/banners');
 const materialsRoutes = require('./routes/materials');
 const materialCategoriesRoutes = require('./routes/material-categories');
 const designersRoutes = require('./routes/designers');
+const activitiesRoutes = require('./routes/activities');
+const shareRoutes = require('./routes/share');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +42,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   }
 }));
 
+// Share landing pages (SSR-lite for social crawlers)
+app.use('/share', shareRoutes);
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/cases', casesRoutes);
@@ -54,6 +59,7 @@ app.use('/api/banners', bannersRoutes);
 app.use('/api/materials', materialsRoutes);
 app.use('/api/material-categories', materialCategoriesRoutes);
 app.use('/api/designers', designersRoutes);
+app.use('/api/activities', activitiesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

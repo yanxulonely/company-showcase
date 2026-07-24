@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useCasesStore } from '../../stores/cases'
 import { uploadFile } from '../../utils/upload'
+import ModuleVisibilityToggle from '../../components/admin/ModuleVisibilityToggle.vue'
 
 const casesStore = useCasesStore()
 const showModal = ref(false)
@@ -85,6 +86,7 @@ async function handleDelete(id) {
       <h1>案例管理</h1>
       <button class="btn btn-primary" @click="openCreate">+ 新增案例</button>
     </div>
+    <ModuleVisibilityToggle module-id="cases" />
     <div class="admin-card">
       <table class="admin-table">
         <thead>

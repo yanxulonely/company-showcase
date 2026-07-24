@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useReviewsStore } from '../../stores/reviews'
+import ModuleVisibilityToggle from '../../components/admin/ModuleVisibilityToggle.vue'
 
 const store = useReviewsStore()
 const showModal = ref(false)
@@ -38,6 +39,7 @@ async function handleDelete(id) {
       <h1>评价管理</h1>
       <button class="btn btn-primary" @click="openCreate">+ 新增评价</button>
     </div>
+    <ModuleVisibilityToggle module-id="reviews" />
     <div class="admin-card">
       <table class="admin-table">
         <thead><tr><th>姓名</th><th>公司</th><th>评分</th><th>操作</th></tr></thead>

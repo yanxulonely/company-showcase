@@ -60,6 +60,14 @@ function formatTime(dateStr) {
         </div>
         <span class="quick-arrow">→</span>
       </div>
+      <div v-if="authStore.isAdmin" class="quick-card" @click="router.push('/admin')">
+        <div class="quick-icon">⚙️</div>
+        <div class="quick-info">
+          <h3>管理后台</h3>
+          <p>进入系统管理与内容维护</p>
+        </div>
+        <span class="quick-arrow">→</span>
+      </div>
       <a href="/" class="quick-card">
         <div class="quick-icon">🌐</div>
         <div class="quick-info">
@@ -128,7 +136,7 @@ function formatTime(dateStr) {
 /* 快捷入口 */
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   margin-bottom: 40px;
 }

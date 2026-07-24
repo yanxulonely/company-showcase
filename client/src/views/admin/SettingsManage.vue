@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useAppStore } from '../../stores/app'
 import { uploadFile } from '../../utils/upload'
+import ModuleVisibilityToggle from '../../components/admin/ModuleVisibilityToggle.vue'
 
 const appStore = useAppStore()
 const form = ref({})
@@ -42,6 +43,8 @@ async function handleQrUpload(e) {
     <div class="admin-header">
       <h1>系统设置</h1>
     </div>
+    <ModuleVisibilityToggle module-id="stats" />
+    <ModuleVisibilityToggle module-id="contact" />
     <div class="admin-card">
       <div v-if="saved" class="save-success">设置已保存！</div>
       <form @submit.prevent="handleSave">

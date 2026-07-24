@@ -14,6 +14,9 @@ const UsersManage = () => import('../views/admin/UsersManage.vue')
 const BannersManage = () => import('../views/admin/BannersManage.vue')
 const MaterialsManage = () => import('../views/admin/MaterialsManage.vue')
 const MaterialCategoriesManage = () => import('../views/admin/MaterialCategoriesManage.vue')
+const ActivitiesManage = () => import('../views/admin/ActivitiesManage.vue')
+const ActivitiesList = () => import('../views/ActivitiesList.vue')
+const ActivityDetail = () => import('../views/ActivityDetail.vue')
 
 // Employee views
 const EmployeeLayout = () => import('../views/employee/EmployeeLayout.vue')
@@ -23,6 +26,8 @@ const MaterialDetail = () => import('../views/employee/MaterialDetail.vue')
 
 const routes = [
   { path: '/', name: 'Home', component: HomePage },
+  { path: '/activities', name: 'ActivitiesList', component: ActivitiesList },
+  { path: '/activities/:id', name: 'ActivityDetail', component: ActivityDetail, props: true },
   { path: '/admin/login', name: 'Login', component: LoginPage },
   {
     path: '/admin',
@@ -31,6 +36,7 @@ const routes = [
     children: [
       { path: '', name: 'Dashboard', component: () => import('../views/admin/DashboardHome.vue') },
       { path: 'cases', name: 'CasesManage', component: CasesManage },
+      { path: 'activities', name: 'ActivitiesManage', component: ActivitiesManage },
       { path: 'designers', name: 'DesignersManage', component: DesignersManage },
       { path: 'capabilities', name: 'CapabilitiesManage', component: CapabilitiesManage },
       { path: 'reviews', name: 'ReviewsManage', component: ReviewsManage },

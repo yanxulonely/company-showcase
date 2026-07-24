@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useStandardsStore } from '../../stores/standards'
+import ModuleVisibilityToggle from '../../components/admin/ModuleVisibilityToggle.vue'
 
 const store = useStandardsStore()
 const showModal = ref(false)
@@ -39,6 +40,7 @@ async function handleDelete(id) {
       <h1>标准管理</h1>
       <button class="btn btn-primary" @click="openCreate">+ 新增标准</button>
     </div>
+    <ModuleVisibilityToggle module-id="standards" />
     <div class="admin-card">
       <table class="admin-table">
         <thead><tr><th>标题</th><th>类型</th><th>条目数</th><th>操作</th></tr></thead>

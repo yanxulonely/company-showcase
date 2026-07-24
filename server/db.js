@@ -192,6 +192,22 @@ function createTables() {
       sort_order INT DEFAULT 0,
       is_active TINYINT DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS activities (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      summary VARCHAR(500),
+      content TEXT,
+      cover_image_url TEXT,
+      location VARCHAR(255),
+      start_time DATETIME,
+      end_time DATETIME,
+      status VARCHAR(20) DEFAULT 'draft',
+      sort_order INT DEFAULT 0,
+      view_count INT DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
   ];
 
@@ -227,6 +243,23 @@ function initDatabase() {
     insertSetting.run('site_qr_url', '/uploads/seed/site-qr.png');
     insertSetting.run('footer_text', '© 2026 尚润装饰. All rights reserved.');
     insertSetting.run('slogan', '专注品质装修，值得信赖');
+    insertSetting.run('module_visibility', JSON.stringify({
+      hero: true, stats: true, cases: true, activities: true,
+      designers: true, capabilities: true, reviews: true,
+      standards: true, contact: true,
+    }));
+  }
+
+  const moduleVis = db.prepare('SELECT value FROM settings WHERE `key` = ?').get('module_visibility');
+  if (!moduleVis) {
+    db.prepare('INSERT INTO settings (`key`, value) VALUES (?, ?)').run(
+      'module_visibility',
+      JSON.stringify({
+        hero: true, stats: true, cases: true, activities: true,
+        designers: true, capabilities: true, reviews: true,
+        standards: true, contact: true,
+      })
+    );
   }
 
   const casesCount = Number(db.prepare('SELECT COUNT(*) as count FROM cases').get().count);
@@ -325,8 +358,100 @@ function initDatabase() {
     insertCat.run('培训课件与话术', 4);
   }
 
+  const activitiesCount = Number(db.prepare('SELECT COUNT(*) as count FROM activities').get().count);
+  syncSeedActivities(db, activitiesCount === 0);
+
   seedDefaultMaterials(db);
   syncPptPdfPreviews(db);
+}
+
+const SEED_ACTIVITIES = [
+  {
+    title: '国庆家装大促 · 1元定金抵1000',
+    summary: '国庆限时钜惠！1元抢定名额，签约立抵1000元，更享免费量房+专属设计方案',
+    content: `<p><strong>🇨🇳 国庆七天，装修省钱七天！</strong></p>
+<p>尚润装饰国庆家装大促火热开启，预约即享多重好礼：</p>
+<ul>
+<li><strong>1元定金抵1000元</strong> — 线上/到店支付1元锁定优惠名额，签约装修合同直接抵扣1000元</li>
+<li><strong>免费上门量房</strong> — 专业设计师免费上门，精准测量户型</li>
+<li><strong>免费设计方案</strong> — 量房后3天内出具专属装修方案</li>
+<li><strong>材料升级礼</strong> — 签约即享指定品牌瓷砖/地板升级优惠</li>
+<li><strong>施工质保延长</strong> — 活动期间签约，隐蔽工程质保延长至5年</li>
+</ul>
+<p>活动名额有限，先到先得！详情咨询门店或在线预约。</p>
+<p><em>* 1元定金不可退，签约后可抵扣；未签约可在活动结束后7日内申请退还。最终解释权归尚润装饰所有。</em></p>`,
+    cover_image_url: '/uploads/seed/activity-national-day.svg',
+    location: '尚润装饰各门店 / 线上预约',
+    start_time: '2026-10-01 00:00:00',
+    end_time: '2026-10-07 23:59:59',
+    status: 'published',
+    sort_order: 1,
+  },
+  {
+    title: '全屋硬装特惠 · 100㎡内38888元起',
+    summary: '包工包料全屋硬装套餐，100平米以内仅需38888元，透明报价、无隐藏增项',
+    content: `<p><strong>🏠 全屋硬装一口价，省心更省钱！</strong></p>
+<p>尚润装饰推出全屋硬装特惠套餐，100㎡以内基础硬装全包仅需 <strong>38888元</strong> 起，适合刚需装修、二手房翻新家庭。</p>
+<p><strong>套餐包含（包工包料）：</strong></p>
+<ul>
+<li>水电改造 — 全屋电路水路规范施工，打压测试合格</li>
+<li>泥瓦工程 — 墙地砖铺贴、厨卫防水、墙面粉刷</li>
+<li>木工工程 — 吊顶、柜体基层、门窗套制作安装</li>
+<li>油漆工程 — 墙面腻子、乳胶漆多遍涂刷</li>
+<li>辅材人工 — 水泥沙石、胶水腻子等辅材及人工费全包</li>
+</ul>
+<p><strong>我们的承诺：</strong></p>
+<ul>
+<li>报价透明，合同价即结算价，拒绝恶意增项</li>
+<li>一线品牌辅材，环保达标</li>
+<li>自有施工团队，全程监理验收</li>
+<li>隐蔽工程5年质保，整体工程2年质保</li>
+</ul>
+<p>超出100㎡部分按标准单价另行核算，欢迎预约免费量房获取精准报价。</p>
+<p><em>* 具体套餐内容以到店签约合同为准，特殊户型（复式、别墅等）不适用本套餐。</em></p>`,
+    cover_image_url: '/uploads/seed/activity-hard-deco.svg',
+    location: '尚润装饰展厅 · 全市可服务',
+    start_time: '2026-07-01 00:00:00',
+    end_time: '2026-12-31 23:59:59',
+    status: 'published',
+    sort_order: 2,
+  },
+];
+
+function syncSeedActivities(db, insertIfEmpty) {
+  const insertActivity = db.prepare(`
+    INSERT INTO activities (
+      title, summary, content, cover_image_url, location,
+      start_time, end_time, status, sort_order
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const updateActivity = db.prepare(`
+    UPDATE activities SET
+      title=?, summary=?, content=?, cover_image_url=?, location=?,
+      start_time=?, end_time=?, status=?, sort_order=?
+    WHERE id=?
+  `);
+
+  if (insertIfEmpty) {
+    for (const a of SEED_ACTIVITIES) {
+      insertActivity.run(
+        a.title, a.summary, a.content, a.cover_image_url, a.location,
+        a.start_time, a.end_time, a.status, a.sort_order
+      );
+    }
+    return;
+  }
+
+  SEED_ACTIVITIES.forEach((a, index) => {
+    const id = index + 1;
+    const existing = db.prepare('SELECT id FROM activities WHERE id = ?').get(id);
+    if (existing) {
+      updateActivity.run(
+        a.title, a.summary, a.content, a.cover_image_url, a.location,
+        a.start_time, a.end_time, a.status, a.sort_order, id
+      );
+    }
+  });
 }
 
 module.exports = { db, initDatabase };

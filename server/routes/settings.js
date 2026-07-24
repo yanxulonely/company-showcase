@@ -1,6 +1,7 @@
 const express = require('express');
 const { db } = require('../db');
 const { authMiddleware } = require('../middleware/auth');
+const { serializeModuleVisibility } = require('../lib/moduleVisibility');
 
 const router = express.Router();
 
@@ -14,7 +15,10 @@ router.get('/', (req, res) => {
 
 // Admin: update settings (batch)
 router.put('/', authMiddleware, (req, res) => {
-  const settings = req.body;
+  const settings = { ...req.body };
+  if (settings.module_visibility !== undefined) {
+    settings.module_visibility = serializeModuleVisibility(settings.module_visibility);
+  }
   const upsert = db.prepare(
     'INSERT INTO settings (`key`, value, updated_at) VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = NOW()'
   );
