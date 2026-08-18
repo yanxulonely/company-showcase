@@ -436,7 +436,7 @@ const SEED_ACTIVITIES = [
 </ul>
 <p>名额有限，限时开放，欢迎邻里业主预约参观！</p>
 <p><em>* 优惠仅限活动期间预约并签约的客户；每小区5个名额，满额即止；最终解释权归尚润装饰所有。</em></p>`,
-    cover_image_url: '/uploads/seed/activity-model-room.svg',
+    cover_image_url: '/uploads/seed/activity-model-room-v2.svg',
     location: '京润现代城四号院 · 梧桐苑惠民馨园',
     start_time: '2026-08-18 00:00:00',
     end_time: '2026-09-18 23:59:59',
