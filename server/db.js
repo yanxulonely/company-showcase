@@ -417,14 +417,14 @@ const SEED_ACTIVITIES = [
     sort_order: 3,
   },
   {
-    title: '样板间限时邀约 · 京润现代城四号院 & 梧桐苑惠民馨园',
-    summary: '双小区样板间同步开放，每小区仅限5个名额，扫码预约即刻享3000元装修优惠',
+    title: '样板间限时邀约 · 京润现代城四号院 · 梧桐苑惠 · 民馨园',
+    summary: '三大小区样板间同步开放，每小区仅限5个名额，扫码预约即刻享3000元装修优惠',
     content: `<p><strong>🏡 实景样板间开放，所见即所得！</strong></p>
-<p>尚润装饰携 <strong>京润现代城四号院</strong>、<strong>梧桐苑惠民馨园</strong> 两大小区样板间同步开放，邀请您亲临现场，感受真实装修效果与品质工艺。</p>
+<p>尚润装饰携 <strong>京润现代城四号院</strong>、<strong>梧桐苑惠</strong>、<strong>民馨园</strong> 三大小区样板间同步开放，邀请您亲临现场，感受真实装修效果与品质工艺。</p>
 <p><strong>限时福利：</strong></p>
 <ul>
 <li><strong>立刻享受3000元优惠</strong> — 扫码预约并到店参观，签约装修合同立减3000元</li>
-<li><strong>每小区仅限5个名额</strong> — 京润现代城四号院5席、梧桐苑惠民馨园5席，先到先得</li>
+<li><strong>每小区仅限5个名额</strong> — 京润现代城四号院、梧桐苑惠、民馨园各5席，共15席，先到先得</li>
 <li><strong>免费专属讲解</strong> — 设计师现场讲解户型方案与材料工艺</li>
 <li><strong>一对一量房咨询</strong> — 参观后可预约免费上门量房，获取专属报价</li>
 </ul>
@@ -436,8 +436,8 @@ const SEED_ACTIVITIES = [
 </ul>
 <p>名额有限，限时开放，欢迎邻里业主预约参观！</p>
 <p><em>* 优惠仅限活动期间预约并签约的客户；每小区5个名额，满额即止；最终解释权归尚润装饰所有。</em></p>`,
-    cover_image_url: '/uploads/seed/activity-model-room-v2.svg',
-    location: '京润现代城四号院 · 梧桐苑惠民馨园',
+    cover_image_url: '/uploads/seed/activity-model-room-v3.svg',
+    location: '京润现代城四号院 · 梧桐苑惠 · 民馨园',
     start_time: '2026-08-18 00:00:00',
     end_time: '2026-09-18 23:59:59',
     status: 'published',

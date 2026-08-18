@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c0f14"/>
+      <stop offset="40%" stop-color="#141c28"/>
+      <stop offset="100%" stop-color="#1a1410"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5e6c8"/>
+      <stop offset="35%" stop-color="#d4af37"/>
+      <stop offset="70%" stop-color="#f0d78c"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+    <linearGradient id="goldH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c9a227"/>
+      <stop offset="50%" stop-color="#f5e6c8"/>
+      <stop offset="100%" stop-color="#c9a227"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#d4af37" stroke-opacity="0.06"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <ellipse cx="1000" cy="500" rx="380" ry="260" fill="#d4af37" opacity="0.06"/>
+
+  <text x="48" y="48" fill="#d4af37" font-size="12" font-family="PingFang SC, Microsoft YaHei, sans-serif" letter-spacing="7" opacity="0.85">SHOWROOM INVITATION</text>
+  <text x="48" y="80" fill="#94a3b8" font-size="20" font-family="PingFang SC, Microsoft YaHei, sans-serif" letter-spacing="3">三大小区 · 样板间限时开放</text>
+
+  <!-- 小区1 -->
+  <rect x="48" y="100" width="360" height="118" rx="6" fill="#1a2230" stroke="url(#gold)" stroke-width="1.2" opacity="0.95"/>
+  <text x="68" y="148" fill="none" stroke="#b8860b" stroke-width="2" font-size="36" font-family="PingFang SC, Microsoft YaHei, serif" font-weight="900" letter-spacing="1">京润现代城</text>
+  <text x="68" y="148" fill="url(#goldH)" font-size="36" font-family="PingFang SC, Microsoft YaHei, serif" font-weight="900" letter-spacing="1">京润现代城</text>
+  <text x="68" y="192" fill="url(#gold)" font-size="28" font-family="PingFang SC, Microsoft YaHei, serif" font-weight="800" letter-spacing="8">四号院</text>
+  <text x="330" y="165" fill="#64748b" font-size="14" font-family="PingFang SC, Microsoft YaHei, sans-serif">限5席</text>
+
+  <!-- 小区2 -->
+  <rect x="48" y="230" width="360" height="96" rx="6" fill="#1a2230" stroke="url(#gold)" stroke-width="1.2" opacity="0.95"/>
+  <text x="68" y="288" fill="none" stroke="#b8860b" stroke-width="2" font-size="40" font-family="PingFang SC, Microsoft YaHei, serif" font-weight="900" letter-spacing="6">梧桐苑惠</text>
+  <text x="68" y="288" fill="url(#goldH)" font-size="40" font-family="PingFang SC, Microsoft YaHei, serif" font-weight="900" letter-spacing="6">梧桐苑惠</text>
+  <text x="330" y="278" fill="#64748b" font-size="14" font-family="PingFang SC, Microsoft YaHei, sans-serif">限5席</text>
+
+  <!-- 小区3 -->
+  <rect x="48" y="338" width="360" height="96" rx="6" fill="#1a2230" stroke="url(#gold)" stroke-width="1.2" opacity="0.95"/>
+  <text x="68" y="396" fill="none" stroke="#b8860b" stroke-width="2" font-size="40" font-family="PingFang SC, Microsoft YaHei, serif" font-weight="900" letter-spacing="10">民馨园</text>
+  <text x="68" y="396" fill="url(#goldH)" font-size="40" font-family="PingFang SC, Microsoft YaHei, serif" font-weight="900" letter-spacing="10">民馨园</text>
+  <text x="330" y="386" fill="#64748b" font-size="14" font-family="PingFang SC, Microsoft YaHei, sans-serif">限5席</text>
+
+  <!-- 优惠 -->
+  <rect x="48" y="452" width="360" height="68" rx="4" fill="#1a2230" stroke="url(#gold)" stroke-width="1.5"/>
+  <rect x="48" y="452" width="360" height="34" rx="4" fill="url(#shine)"/>
+  <text x="68" y="480" fill="#f5e6c8" font-size="18" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="600">签约立享</text>
+  <text x="68" y="508" fill="url(#gold)" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="900">3000元装修优惠</text>
+
+  <!-- 右侧大图区 -->
+  <rect x="440" y="48" width="720" height="472" rx="8" fill="#1a2230" stroke="url(#gold)" stroke-width="1.5"/>
+  <rect x="468" y="76" width="320" height="220" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.45"/>
+  <rect x="812" y="76" width="320" height="220" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.35"/>
+  <rect x="640" y="76" width="320" height="220" fill="none" stroke="#d4af37" stroke-width="1.5" opacity="0.25"/>
+  <path d="M468 360 Q800 320 1132 360 L1132 440 Q800 480 468 440 Z" fill="#2a3544" stroke="#d4af37" stroke-width="1" opacity="0.55"/>
+  <text x="800" y="200" text-anchor="middle" fill="url(#gold)" font-size="72" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="900">3000</text>
+  <text x="800" y="260" text-anchor="middle" fill="#f5e6c8" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">元签约优惠</text>
+  <text x="800" y="310" text-anchor="middle" fill="#94a3b8" font-size="20" font-family="PingFang SC, Microsoft YaHei, sans-serif">三小区同步 · 扫码预约</text>
+
+  <rect x="0" y="560" width="1200" height="70" fill="#0a0a0f" opacity="0.9"/>
+  <rect x="0" y="560" width="1200" height="1" fill="url(#goldH)" opacity="0.5"/>
+  <text x="48" y="602" fill="#e2e8f0" font-size="17" font-family="PingFang SC, Microsoft YaHei, sans-serif">京润现代城四号院 · 梧桐苑惠 · 民馨园</text>
+  <text x="900" y="602" fill="#d4af37" font-size="16" font-family="PingFang SC, Microsoft YaHei, sans-serif" letter-spacing="2">尚润装饰</text>
+</svg>
