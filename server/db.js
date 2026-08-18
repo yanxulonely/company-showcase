@@ -382,10 +382,10 @@ const SEED_ACTIVITIES = [
 <p><em>* 1元定金不可退，签约后可抵扣；未签约可在活动结束后7日内申请退还。最终解释权归尚润装饰所有。</em></p>`,
     cover_image_url: '/uploads/seed/activity-national-day.svg',
     location: '尚润装饰各门店 / 线上预约',
-    start_time: '2026-10-01 00:00:00',
+    start_time: '2026-08-18 00:00:00',
     end_time: '2026-10-07 23:59:59',
     status: 'published',
-    sort_order: 1,
+    sort_order: 2,
   },
   {
     title: '全屋硬装特惠 · 100㎡内38888元起',
@@ -414,7 +414,34 @@ const SEED_ACTIVITIES = [
     start_time: '2026-07-01 00:00:00',
     end_time: '2026-12-31 23:59:59',
     status: 'published',
-    sort_order: 2,
+    sort_order: 3,
+  },
+  {
+    title: '样板间限时邀约 · 京润现代城四号院 & 梧桐苑惠民馨园',
+    summary: '双小区样板间同步开放，每小区仅限5个名额，扫码预约即刻享3000元装修优惠',
+    content: `<p><strong>🏡 实景样板间开放，所见即所得！</strong></p>
+<p>尚润装饰携 <strong>京润现代城四号院</strong>、<strong>梧桐苑惠民馨园</strong> 两大小区样板间同步开放，邀请您亲临现场，感受真实装修效果与品质工艺。</p>
+<p><strong>限时福利：</strong></p>
+<ul>
+<li><strong>立刻享受3000元优惠</strong> — 扫码预约并到店参观，签约装修合同立减3000元</li>
+<li><strong>每小区仅限5个名额</strong> — 京润现代城四号院5席、梧桐苑惠民馨园5席，先到先得</li>
+<li><strong>免费专属讲解</strong> — 设计师现场讲解户型方案与材料工艺</li>
+<li><strong>一对一量房咨询</strong> — 参观后可预约免费上门量房，获取专属报价</li>
+</ul>
+<p><strong>参与方式：</strong></p>
+<ul>
+<li>扫描活动二维码或点击分享链接预约</li>
+<li>到店参观样板间并登记信息</li>
+<li>名额确认后享受3000元签约优惠</li>
+</ul>
+<p>名额有限，限时开放，欢迎邻里业主预约参观！</p>
+<p><em>* 优惠仅限活动期间预约并签约的客户；每小区5个名额，满额即止；最终解释权归尚润装饰所有。</em></p>`,
+    cover_image_url: '/uploads/seed/activity-model-room.svg',
+    location: '京润现代城四号院 · 梧桐苑惠民馨园',
+    start_time: '2026-08-18 00:00:00',
+    end_time: '2026-09-18 23:59:59',
+    status: 'published',
+    sort_order: 1,
   },
 ];
 
@@ -430,6 +457,12 @@ function syncSeedActivities(db, insertIfEmpty) {
       title=?, summary=?, content=?, cover_image_url=?, location=?,
       start_time=?, end_time=?, status=?, sort_order=?
     WHERE id=?
+  `);
+  const insertActivityWithId = db.prepare(`
+    INSERT INTO activities (
+      id, title, summary, content, cover_image_url, location,
+      start_time, end_time, status, sort_order
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   if (insertIfEmpty) {
@@ -449,6 +482,11 @@ function syncSeedActivities(db, insertIfEmpty) {
       updateActivity.run(
         a.title, a.summary, a.content, a.cover_image_url, a.location,
         a.start_time, a.end_time, a.status, a.sort_order, id
+      );
+    } else {
+      insertActivityWithId.run(
+        id, a.title, a.summary, a.content, a.cover_image_url, a.location,
+        a.start_time, a.end_time, a.status, a.sort_order
       );
     }
   });
